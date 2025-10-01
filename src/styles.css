@@ -1,0 +1,79 @@
+ .v-application {
+  background: #285cb1 !important;
+}
+
+.v-text-field input,
+.v-textarea textarea,
+.v-autocomplete .v-input__control {
+  border-radius: 5px;
+}
+
+.v-autocomplete .v-field__input {
+  border-radius: 5px;
+}
+
+.v-textarea .v-field__field,
+.v-textarea .v-field__input,
+.v-textarea .v-input__control {
+  border-radius: 5px;
+}
+
+.availability-btn {
+  position: relative;
+  height: 40px !important; 
+  min-height: 40px !important;
+  font-size: 18px !important;
+  font-weight: bold !important;
+}
+
+.availability-btn.available {
+  background-color: #4caf50 !important;
+  color: white !important;
+}
+
+.availability-btn.unavailable {
+  background-color: #f44336 !important;
+  color: white !important;
+}
+
+.availability-btn .hover-text {
+  display: none;
+}
+
+.availability-btn:hover .default-text {
+  display: none;
+}
+
+.availability-btn:hover .hover-text {
+  display: inline;
+}
+
+.availability-btn.available:hover {
+  background-color: #f44336 !important; 
+}
+
+.availability-btn.unavailable:hover {
+  background-color: #4caf50 !important; 
+}
+
+.finish-btn {
+  height: 45px !important;
+  min-height: 45px !important;
+  font-size: 16px !important;
+  font-weight: bold !important;
+}
+
+.finish-btn:hover {
+  background-color: #4caf50 !important; 
+}
+
+.whatsapp-btn {
+  background-color: #25d366 !important;
+  color: white !important;
+  align-self: flex-start !important;
+  margin-top: 0px !important;
+}
+
+.whatsapp-btn:hover {
+  background-color: #1da851 !important;
+}

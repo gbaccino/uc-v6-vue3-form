@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Vue + Vuetify Test</title>
+
+    <!-- Vuetify CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/vuetify@3.6.11/dist/vuetify.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Material Design Icons -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/@mdi/font/css/materialdesignicons.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- Vue -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+
+    <!-- Vuetify JS -->
+    <script src="https://cdn.jsdelivr.net/npm/vuetify@3.6.11/dist/vuetify.min.js"></script>
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div id="app">
+      <v-app>
+        <v-container class="bg-grey-lighten-3 pa-6" style="border-radius: 8px">
+          <v-row>
+            <!-- Lado izquierdo -->
+            <v-col cols="4">
+              <v-card variant="elevated" class="bg-grey-lighten-4 pa-4">
+                <template v-for="(value, key) in clientData" :key="key">
+                  <div v-if="key === 'Phone'" class="d-flex align-center mb-3">
+                    <v-text-field
+                      v-model="clientData[key]"
+                      :label="key"
+                      readonly
+                      density="compact"
+                      class="flex-grow-1 mr-2"
+                    ></v-text-field>
+                    <v-btn
+                      icon
+                      size="small"
+                      color="green"
+                      @click="callPhone"
+                      class="phone-btn"
+                      :disabled="isCallActive"
+                    >
+                      <v-icon>mdi-phone</v-icon>
+                    </v-btn>
+                  </div>
+                  <v-text-field
+                    v-else
+                    v-model="clientData[key]"
+                    :label="key"
+                    readonly
+                    density="compact"
+                  ></v-text-field>
+                </template>
+
+                <v-textarea
+                  v-model="notes"
+                  label="Notes"
+                  density="compact"
+                ></v-textarea>
+              </v-card>
+            </v-col>
+
+            <!-- Lado derecho -->
+            <v-col cols="8">
+              <v-card variant="elevated" class="bg-grey-lighten-4 pa-4">
+                <h4 class="mb-4">Dispositions</h4>
+
+                <!-- Campaign selector - always show, disable when CTI present or call active -->
+                <v-autocomplete
+                  v-model="campaign.name"
+                  :items="availableCampaigns"
+                  label="Campaign"
+                  density="compact"
+                  class="mb-3"
+                  :disabled="hasCTI || isCallActive"
+                  :readonly="hasCTI || isCallActive"
+                  @update:model-value="onCampaignSelected"
+                ></v-autocomplete>
+
+                <v-autocomplete
+                  v-if="dispoLevels[0] && dispoLevels[0].length > 0"
+                  v-model="selected[0]"
+                  :items="dispoLevels[0]"
+                  label="Level 1"
+                  density="compact"
+                  @update:model-value="loadNext(0)"
+                ></v-autocomplete>
+
+                <v-autocomplete
+                  v-if="selected[0] && dispoLevels[1] && dispoLevels[1].length > 0"
+                  v-model="selected[1]"
+                  :items="dispoLevels[1]"
+                  label="Level 2"
+                  density="compact"
+                  @update:model-value="loadNext(1)"
+                ></v-autocomplete>
+
+                <v-autocomplete
+                  v-if="selected[1] && dispoLevels[2] && dispoLevels[2].length > 0"
+                  v-model="selected[2]"
+                  :items="dispoLevels[2]"
+                  label="Level 3"
+                  density="compact"
+                ></v-autocomplete>
+              </v-card>
+
+              <v-btn
+                block
+                class="mt-4 finish-btn"
+                color="primary"
+                :loading="isFinishing"
+                :disabled="!clientData.Guid"
+                @click="finish"
+              >
+                Finish
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-container>
+
+        <!-- Number Selection Modal -->
+        <v-dialog v-model="showNumberModal" max-width="400" persistent>
+          <v-card>
+            <v-card-title class="text-h6">
+              <v-icon class="mr-2">mdi-phone</v-icon>
+              Select Phone Number
+            </v-card-title>
+
+            <v-card-text>
+              <p class="mb-4">Choose a phone number to make the call:</p>
+
+              <v-radio-group v-model="selectedNumber" density="compact">
+                <v-radio
+                  v-for="(number, index) in numberOptions"
+                  :key="index"
+                  :value="number"
+                  :label="number"
+                  color="primary"
+                ></v-radio>
+              </v-radio-group>
+            </v-card-text>
+
+            <v-card-actions>
+              <v-spacer></v-spacer>
+              <v-btn text @click="cancelNumberSelection" color="grey">
+                Cancel
+              </v-btn>
+              <v-btn
+                color="primary"
+                @click="confirmNumberSelection"
+                :disabled="!selectedNumber"
+              >
+                <v-icon class="mr-1">mdi-phone</v-icon>
+                Call
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+      </v-app>
+    </div>
+
+    <script src="index.js"></script>
+  </body>
+</html>
