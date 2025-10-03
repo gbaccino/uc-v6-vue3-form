@@ -60,12 +60,6 @@
                     density="compact"
                   ></v-text-field>
                 </template>
-
-                <v-textarea
-                  v-model="notes"
-                  label="Notes"
-                  density="compact"
-                ></v-textarea>
               </v-card>
             </v-col>
 
@@ -111,6 +105,12 @@
                   label="Level 3"
                   density="compact"
                 ></v-autocomplete>
+
+                <v-textarea
+                  v-model="notes"
+                  label="Notes"
+                  density="compact"
+                ></v-textarea>
               </v-card>
 
               <v-btn
@@ -145,6 +145,7 @@
                   :value="number"
                   :label="number"
                   color="primary"
+                  @click="selectNumber(number)"
                 ></v-radio>
               </v-radio-group>
             </v-card-text>

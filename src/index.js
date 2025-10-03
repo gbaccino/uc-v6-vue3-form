@@ -3,16 +3,12 @@ const { createVuetify } = Vuetify;
 
 const vuetify = createVuetify();
 
+// Sample CTI : '{"Guid":"824da669-2239-46f2-98c7-1a8cafa34701","Screen":"FALSE","Form":"testCapacitacion","Campaign":"SalienteTest->","Callerid":"17410632","ParAndValues":"","Beep":"FALSE","Answer":"FALSE"}'
+
 createApp({
   data() {
     return {
-      clientData: {
-        Phone: "",
-        Name: "",
-        Address: "",
-        Email: "",
-      },
-      notes: "",
+      clientData: {},
       dispoLevels: [[], [], []],
       dispositions: [],
       selected: ["", "", ""],
@@ -30,6 +26,7 @@ createApp({
       selectedNumber: null, // Store selected number
       numberSelectionResolve: null, // Promise resolver for modal
       isCallActive: false, // Track if a call is currently active
+      notes: "", // Store notes for the client
     };
   },
   mounted() {
@@ -37,28 +34,21 @@ createApp({
   },
   methods: {
     async initializeForm() {
-      // Set agent from Agent.accountcode
       this.setAgent();
 
-      // Always load available campaigns first
       await this.loadAvailableCampaigns();
 
       if (await this.initializeCTI()) {
         this.hasCTI = true;
-        console.log("Form initialized with CTI data");
       } else {
         this.hasCTI = false;
-        console.log("No CTI data found, manual campaign selection required");
-        this.loadNextClient();
       }
     },
     setAgent() {
       try {
         if (typeof Agent !== "undefined" && Agent && Agent.accountcode) {
           this.agent = Agent.accountcode;
-          console.log("Agent set to:", this.agent);
         } else {
-          console.log("Agent.accountcode not found");
           this.agent = "noAgent";
         }
       } catch (error) {
@@ -71,16 +61,8 @@ createApp({
         if (typeof CTI !== "undefined" && CTI) {
           this.ctiData = JSON.parse(CTI);
           this.populateClientData();
-          console.log("CTI data parsed:", this.ctiData);
-
-          // Get client data using phone number from CTI
-          if (this.clientData.Whatsapp) {
-            await this.getClientData(this.clientData.Whatsapp);
-          }
-
           return true;
         } else {
-          console.log("No CTI data found");
           return false;
         }
       } catch (error) {
@@ -96,10 +78,7 @@ createApp({
     },
     resetForm() {
       this.selected = ["", "", ""];
-      this.notes = "";
       this.dispoLevels = [[], [], []];
-
-      console.log("Form reset");
     },
     async loadAvailableCampaigns() {
       try {
@@ -110,9 +89,7 @@ createApp({
 
         if (campaignData && campaignData.length > 0) {
           this.availableCampaigns = campaignData.map((c) => c.queuename);
-          console.log("Available campaigns loaded:", this.availableCampaigns);
         } else {
-          console.log("No campaigns available for agent:", this.agent);
           this.availableCampaigns = [];
         }
       } catch (error) {
@@ -122,7 +99,6 @@ createApp({
     },
     async onCampaignSelected() {
       if (this.campaign.name) {
-        console.log("Campaign selected:", this.campaign.name);
         await this.loadCampaignNumbers();
 
         // Reset form when campaign changes
@@ -137,19 +113,14 @@ createApp({
         if (this.ctiData.Campaign) {
           this.campaign.name = this.ctiData.Campaign;
 
-          // Ensure CTI campaign is in the available campaigns list
+          // Ensure CTI campaign is in the `available campaigns list
           if (!this.availableCampaigns.includes(this.campaign.name)) {
             this.availableCampaigns.push(this.campaign.name);
-            console.log(
-              "Added CTI campaign to available campaigns:",
-              this.campaign.name
-            );
           }
         }
 
         if (this.ctiData.Callerid) {
-          this.clientData.Id = this.ctiData.Callerid;
-          this.clientData.Whatsapp = this.ctiData.Callerid;
+          this.clientData.Phone = this.ctiData.Callerid;
         }
 
         if (this.ctiData.Guid) {
@@ -158,14 +129,26 @@ createApp({
 
         if (this.ctiData.ParAndValues && this.ctiData.ParAndValues !== "") {
           try {
-            console.log("ParAndValues:", this.ctiData.ParAndValues);
+            const pairs = this.ctiData.ParAndValues.split(":");
+
+            pairs.forEach((pair) => {
+              const trimmedPair = pair.trim();
+              if (trimmedPair) {
+                const equalIndex = trimmedPair.indexOf("=");
+                if (equalIndex !== -1) {
+                  const key = trimmedPair.substring(0, equalIndex).trim();
+                  const value = trimmedPair.substring(equalIndex + 1).trim();
+
+                  if (key && value) {
+                    this.clientData[key] = value;
+                  }
+                }
+              }
+            });
           } catch (e) {
-            console.log("ParAndValues is not JSON:", this.ctiData.ParAndValues);
+            console.error("Error parsing ParAndValues:", e);
           }
         }
-
-        console.log("Client data populated from CTI:", this.clientData);
-        console.log("Campaign set to:", this.campaign.name);
 
         if (this.campaign.name) {
           this.loadDispositionOptions();
@@ -182,9 +165,6 @@ createApp({
           ...new Set(this.dispositions.map((d) => d.value1)),
         ];
         this.dispoLevels[0] = uniqueLevel1.filter((v) => v && v.trim() !== "");
-
-        console.log("Dispositions loaded for campaign:", this.campaign.name);
-        console.log("Unique Level 1 options:", this.dispoLevels[0]);
       } catch (error) {
         console.error("Error loading dispositions:", error);
       }
@@ -201,16 +181,8 @@ createApp({
             .map((n) => n.did)
             .flatMap((num) => num.split(":").map((n) => n.trim()))
             .filter((n) => n && n !== "");
-
-          console.log(
-            "Campaign numbers loaded for",
-            this.campaign.name,
-            ":",
-            this.campaign.numbers
-          );
         } else {
           this.campaign.numbers = [];
-          console.log("No numbers found for campaign:", this.campaign.name);
         }
       } catch (error) {
         console.error("Error loading campaign numbers:", error);
@@ -230,13 +202,6 @@ createApp({
         this.dispoLevels[1] = [...new Set(level2Options)];
 
         this.dispoLevels[2] = [];
-
-        console.log(
-          "Level 2 options for",
-          this.selected[0],
-          ":",
-          this.dispoLevels[1]
-        );
       }
 
       if (level === 1) {
@@ -251,60 +216,27 @@ createApp({
           .filter((v) => v && v.trim() !== "");
 
         this.dispoLevels[2] = [...new Set(level3Options)];
-
-        console.log(
-          "Level 3 options for",
-          this.selected[0],
-          "->",
-          this.selected[1],
-          ":",
-          this.dispoLevels[2]
-        );
       }
     },
     async finish() {
       this.isFinishing = true;
 
       try {
-        // Save the current client data and disposition
         await this.saveClientDisposition();
-
-        // Delete the client from the queue after saving disposition
-        await this.deleteClient();
 
         if (this.hasCTI) {
           UC_closeForm();
         }
 
-        console.log("Final data:", {
-          client: this.clientData,
-          notes: this.notes,
-          selected: this.selected,
-          available: this.available,
-        });
-
         // Unblock UI after finishing
         this.isCallActive = false;
-        console.log("Call finished - UI unblocked");
 
         // Clear campaign selection if no CTI
         if (!this.hasCTI) {
           this.campaign.name = "";
-          console.log("Campaign cleared");
         }
         // Reset form but don't auto-load next client
         this.resetForm();
-        this.clientData = {
-          Name: "",
-          Address: "",
-          Whatsapp: "",
-          Email: "",
-          Id: "",
-          Guid: "",
-          uuid: "",
-          opp_id: "",
-          stage_name: "",
-        };
 
         notification(
           "Success",
@@ -328,22 +260,22 @@ createApp({
       try {
         await UC_DispositionCall_async(
           this.campaign.name,
-          this.clientData.Whatsapp,
-          this.clientData.Guid,
+          this.clientData.Phone,
+          this.ctiData.Guid,
           this.selected[0],
           this.selected[1],
           this.selected[2],
           this.notes
         );
-        console.log("Client disposition saved");
       } catch (error) {
         console.error("Error saving client disposition:", error);
         throw error;
       }
     },
     async callPhone() {
-      const whatsappNumber = this.clientData.Whatsapp;
-      if (whatsappNumber) {
+      const phone = this.clientData.Phone;
+
+      if (phone) {
         if (!this.campaign.name) {
           notification(
             "Warning",
@@ -384,19 +316,12 @@ createApp({
           const response = await UC_makeCall_async(
             this.campaign.name,
             selectedNumber,
-            whatsappNumber,
+            phone,
             false
           );
 
           this.clientData.Guid = response;
-          console.log("Call initiated:", response);
-
-          // Set call as active to block campaign select and call button
           this.isCallActive = true;
-          // Set agent as unavailable when a client is loaded
-          this.available = false;
-          UC_pause(true);
-          console.log("Call is now active - UI blocked");
         } catch (error) {
           console.error("Error making call:", error);
           notification(
@@ -409,7 +334,7 @@ createApp({
       } else {
         notification(
           "Warning",
-          "No WhatsApp number available",
+          "No phone number available",
           "fa fa-warning",
           "warning"
         );
@@ -423,9 +348,11 @@ createApp({
         this.showNumberModal = true;
       });
     },
+
     selectNumber(number) {
       this.selectedNumber = number;
     },
+
     confirmNumberSelection() {
       if (this.selectedNumber && this.numberSelectionResolve) {
         this.numberSelectionResolve(this.selectedNumber);
