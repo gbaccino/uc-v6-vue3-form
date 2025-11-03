@@ -2,40 +2,56 @@
   background: #285cb1 !important;
 }
 
-.v-text-field input,
-.v-textarea textarea,
-.v-autocomplete .v-input__control {
-  border-radius: 5px;
+.v-container {
+  border-radius: 8px;
 }
 
-.v-autocomplete .v-field__input {
-  border-radius: 5px;
+/* Custom styles for the three-section form */
+.campaign-item,
+.agent-item,
+.disposition-item {
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border-radius: 8px;
+  margin-bottom: 4px;
 }
 
-.v-textarea .v-field__field,
-.v-textarea .v-field__input,
-.v-textarea .v-input__control {
-  border-radius: 5px;
+.campaign-item:hover,
+.agent-item:hover,
+.disposition-item:hover {
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
-.finish-btn {
-  height: 45px !important;
-  min-height: 45px !important;
-  font-size: 16px !important;
-  font-weight: bold !important;
+.selected-item {
+  background-color: rgba(33, 150, 243, 0.1) !important;
 }
 
-.finish-btn:hover {
-  background-color: #4caf50 !important; 
+.v-card {
+  border-radius: 12px !important;
+  min-height: 400px;
+  max-height: 600px;
+  display: flex;
+  flex-direction: column;
 }
 
-.whatsapp-btn {
-  background-color: #25d366 !important;
-  color: white !important;
-  align-self: flex-start !important;
-  margin-top: 0px !important;
+.v-card-text {
+  overflow-y: auto;
+  flex: 1;
 }
 
-.whatsapp-btn:hover {
-  background-color: #1da851 !important;
+.v-card-text .v-list {
+  max-height: 100%;
+}
+
+.v-card-title {
+  font-weight: 600 !important;
+}
+
+.gap-3 {
+  gap: 12px;
+}
+
+.active-item {
+  background-color: rgba(33, 150, 243, 0.2) !important;
+  border-left: 4px solid #2196f3 !important;
 }

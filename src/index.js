@@ -2,381 +2,596 @@ const { createApp } = Vue;
 const { createVuetify } = Vuetify;
 
 const vuetify = createVuetify();
+const instance = window.location.host;
 
 // Sample CTI : '{"Guid":"824da669-2239-46f2-98c7-1a8cafa34701","Screen":"FALSE","Form":"testCapacitacion","Campaign":"SalienteTest->","Callerid":"17410632","ParAndValues":"","Beep":"FALSE","Answer":"FALSE"}'
 
 createApp({
   data() {
     return {
-      clientData: {},
-      dispoLevels: [[], [], []],
-      dispositions: [],
-      selected: ["", "", ""],
-      isFinishing: false,
-      ctiData: null,
-      campaign: {
-        name: "",
-        numbers: [],
+      // Campaigns loaded from UC_getSystemCampaigns_async()
+      campaigns: [],
+
+      selectedCampaigns: [], // Array of selected campaign IDs
+      currentCampaignId: null, // Currently active campaign being configured
+      agentsByCampaign: {}, // Object to store agents for each selected campaign
+      dispositionsByCampaign: {}, // Object to store dispositions for each selected campaign
+      isSaving: false,
+
+      // Token management
+      currentToken: null,
+      tokenDialog: false,
+      tokenInput: "",
+      isSavingToken: false,
+
+      // Snackbar for notifications
+      snackbar: {
+        show: false,
+        message: "",
+        color: "success",
+        timeout: 3000,
       },
-      hasCTI: false,
-      agent: "", // Store agent account code
-      availableCampaigns: [], // Store available campaigns for manual selection
-      showNumberModal: false, // Control number selection modal
-      numberOptions: [], // Store numbers for selection
-      selectedNumber: null, // Store selected number
-      numberSelectionResolve: null, // Promise resolver for modal
-      isCallActive: false, // Track if a call is currently active
-      notes: "", // Store notes for the client
     };
   },
-  mounted() {
-    this.initializeForm();
+  async mounted() {
+    // Initialize form - load campaigns, token, and saved configuration
+    await this.loadCampaigns();
+    await this.loadToken();
+    await this.loadSavedConfiguration();
+    console.log("Form initialized with campaigns:", this.campaigns);
   },
+  computed: {
+    // Get agents for the currently active campaign only
+    currentAgents() {
+      if (!this.currentCampaignId) return [];
+      return this.agentsByCampaign[this.currentCampaignId] || [];
+    },
+
+    // Get dispositions for the currently active campaign only
+    currentDispositions() {
+      if (!this.currentCampaignId) return [];
+      return this.dispositionsByCampaign[this.currentCampaignId] || [];
+    },
+
+    // Check if any campaigns are selected
+    hasSelectedCampaigns() {
+      return this.selectedCampaigns.length > 0;
+    },
+
+    // Get the current campaign object
+    currentCampaign() {
+      if (!this.currentCampaignId) return null;
+      return this.campaigns.find((c) => c.id === this.currentCampaignId);
+    },
+
+    // Token button label
+    tokenButtonLabel() {
+      return this.currentToken ? "Update Token" : "Set Token";
+    },
+  },
+
   methods: {
-    async initializeForm() {
-      this.setAgent();
-
-      await this.loadAvailableCampaigns();
-
-      if (await this.initializeCTI()) {
-        this.hasCTI = true;
-      } else {
-        this.hasCTI = false;
-      }
+    showSnackbar(message, color = "success", timeout = 3000) {
+      this.snackbar.message = message;
+      this.snackbar.color = color;
+      this.snackbar.timeout = timeout;
+      this.snackbar.show = true;
     },
-    setAgent() {
+
+    async loadToken() {
       try {
-        if (typeof Agent !== "undefined" && Agent && Agent.accountcode) {
-          this.agent = Agent.accountcode;
-        } else {
-          this.agent = "noAgent";
-        }
-      } catch (error) {
-        console.error("Error getting agent account code:", error);
-        this.agent = "noAgent";
-      }
-    },
-    async initializeCTI() {
-      try {
-        if (typeof CTI !== "undefined" && CTI) {
-          this.ctiData = JSON.parse(CTI);
-          this.populateClientData();
-          return true;
-        } else {
-          return false;
-        }
-      } catch (error) {
-        console.error("Error parsing CTI data:", error);
-        notification(
-          "Error",
-          "Error parsing CTI data: " + error.message,
-          "fa fa-times",
-          "danger"
+        const result = await UC_get_async(
+          `SELECT value FROM ccdata.configuration WHERE config = "TokenAI"`,
+          "Data"
         );
-        return false;
+        const data = JSON.parse(result);
+        this.currentToken = data.length > 0 ? data[0].value : null;
+      } catch (error) {
+        console.error("Error loading token:", error);
+        this.currentToken = null;
       }
     },
-    resetForm() {
-      this.selected = ["", "", ""];
-      this.dispoLevels = [[], [], []];
+
+    openTokenDialog() {
+      // Pre-fill with current token if it exists
+      this.tokenInput = this.currentToken || "";
+      this.tokenDialog = true;
     },
-    async loadAvailableCampaigns() {
+
+    closeTokenDialog() {
+      this.tokenDialog = false;
+      this.tokenInput = "";
+    },
+
+    async saveToken() {
+      if (!this.tokenInput.trim()) {
+        this.showSnackbar("Please enter a token", "warning");
+        return;
+      }
+
+      this.isSavingToken = true;
       try {
-        const query = `SELECT DISTINCT queuename FROM ccdata.queues_agents WHERE agent = '${this.agent}' AND channel = 'telephony' AND queuename LIKE '%->'`;
-        const result = await UC_get_async(query);
+        const result = await UC_exec_async(
+          `UPDATE ccdata.configuration SET value = "${this.tokenInput}" WHERE config = "TokenAI"`,
+          "Data"
+        );
 
-        const campaignData = JSON.parse(result);
-
-        if (campaignData && campaignData.length > 0) {
-          this.availableCampaigns = campaignData.map((c) => c.queuename);
+        if (result === "OK") {
+          this.currentToken = this.tokenInput;
+          this.showSnackbar("Token saved successfully!", "success");
+          this.closeTokenDialog();
         } else {
-          this.availableCampaigns = [];
+          this.showSnackbar("Failed to save token", "error");
         }
       } catch (error) {
-        console.error("Error loading available campaigns:", error);
-        this.availableCampaigns = [];
+        console.error("Error saving token:", error);
+        this.showSnackbar("Error saving token: " + error.message, "error");
+      } finally {
+        this.isSavingToken = false;
       }
     },
-    async onCampaignSelected() {
-      if (this.campaign.name) {
-        await this.loadCampaignNumbers();
 
-        // Reset form when campaign changes
-        this.resetForm();
+    async loadCampaigns() {
+      try {
+        // Fetch campaigns from UC function
+        const response = await UC_getSystemCampaigns_async();
 
-        // Load dispositions for selected campaign
-        await this.loadDispositionOptions();
+        // Parse the response if it's a string
+        const campaignsData =
+          typeof response === "string" ? JSON.parse(response) : response;
+
+        // Transform the data into the format we need
+        // Assuming the response is an array of campaign names or objects with name property
+        this.campaigns = campaignsData.map((campaign, index) => {
+          // If campaign is a string, use it as name
+          const campaignName =
+            typeof campaign === "string" ? campaign : campaign.name;
+
+          return {
+            id: index + 1,
+            name: campaignName,
+            selected: false,
+          };
+        });
+      } catch (error) {
+        console.error("Error loading campaigns:", error);
+        // Set empty array on error
+        this.campaigns = [];
       }
     },
-    populateClientData() {
-      if (this.ctiData) {
-        if (this.ctiData.Campaign) {
-          this.campaign.name = this.ctiData.Campaign;
 
-          // Ensure CTI campaign is in the `available campaigns list
-          if (!this.availableCampaigns.includes(this.campaign.name)) {
-            this.availableCampaigns.push(this.campaign.name);
+    async loadSavedConfiguration() {
+      try {
+        // Load saved agents configuration
+        const agentsResponse = await UC_get_async(
+          `SELECT campaign, agent_name FROM ccrepo.InteractionAISettings_Agents;`,
+          "Data"
+        );
+        const savedAgents = JSON.parse(agentsResponse);
+
+        // Load saved dispositions configuration
+        const dispositionsResponse = await UC_get_async(
+          `SELECT campaign, value1, value2, value3 FROM ccrepo.InteractionAISettings_Dispositions;`,
+          "Data"
+        );
+        const savedDispositions = JSON.parse(dispositionsResponse);
+
+        // Group saved data by campaign
+        const savedAgentsByCampaign = {};
+        const savedDispositionsByCampaign = {};
+
+        // Group agents by campaign
+        savedAgents.forEach((item) => {
+          if (!savedAgentsByCampaign[item.campaign]) {
+            savedAgentsByCampaign[item.campaign] = [];
           }
-        }
+          savedAgentsByCampaign[item.campaign].push(item.agent_name);
+        });
 
-        if (this.ctiData.Callerid) {
-          this.clientData.Phone = this.ctiData.Callerid;
-        }
+        // Group dispositions by campaign
+        savedDispositions.forEach((item) => {
+          if (!savedDispositionsByCampaign[item.campaign]) {
+            savedDispositionsByCampaign[item.campaign] = [];
+          }
+          savedDispositionsByCampaign[item.campaign].push({
+            value1: item.value1,
+            value2: item.value2,
+            value3: item.value3,
+          });
+        });
 
-        if (this.ctiData.Guid) {
-          this.clientData.Guid = this.ctiData.Guid;
-        }
+        // Process each campaign that has saved configuration
+        for (const campaignName in savedAgentsByCampaign) {
+          const campaign = this.campaigns.find((c) => c.name === campaignName);
+          if (!campaign) continue;
 
-        if (this.ctiData.ParAndValues && this.ctiData.ParAndValues !== "") {
-          try {
-            const pairs = this.ctiData.ParAndValues.split(":");
+          // Mark campaign as selected
+          campaign.selected = true;
+          this.selectedCampaigns.push(campaign.id);
 
-            pairs.forEach((pair) => {
-              const trimmedPair = pair.trim();
-              if (trimmedPair) {
-                const equalIndex = trimmedPair.indexOf("=");
-                if (equalIndex !== -1) {
-                  const key = trimmedPair.substring(0, equalIndex).trim();
-                  const value = trimmedPair.substring(equalIndex + 1).trim();
+          // Load agents and dispositions for this campaign
+          await this.loadAgentsForCampaign(campaign.id, campaign.name);
+          await this.loadDispositionsForCampaign(campaign.id);
 
-                  if (key && value) {
-                    this.clientData[key] = value;
-                  }
-                }
+          // Wait a bit for data to be loaded
+          await new Promise((resolve) => setTimeout(resolve, 100));
+
+          // Mark saved agents as selected
+          const savedAgentNames = savedAgentsByCampaign[campaignName];
+          const allAgents = this.agentsByCampaign[campaign.id] || [];
+
+          if (savedAgentNames.includes("*")) {
+            // All agents are selected
+            allAgents.forEach((agent) => {
+              agent.selected = true;
+            });
+          } else {
+            // Select specific agents
+            allAgents.forEach((agent) => {
+              if (savedAgentNames.includes(agent.name)) {
+                agent.selected = true;
               }
             });
-          } catch (e) {
-            console.error("Error parsing ParAndValues:", e);
           }
         }
 
-        if (this.campaign.name) {
-          this.loadDispositionOptions();
-        }
-      }
-    },
-    async loadDispositionOptions() {
-      try {
-        const query = `SELECT * FROM ccdata.dispositions WHERE campaign = '${this.campaign.name}'`;
-        const result = await UC_get_async(query);
-        this.dispositions = JSON.parse(result);
+        // Process dispositions
+        for (const campaignName in savedDispositionsByCampaign) {
+          const campaign = this.campaigns.find((c) => c.name === campaignName);
+          if (!campaign) continue;
 
-        const uniqueLevel1 = [
-          ...new Set(this.dispositions.map((d) => d.value1)),
-        ];
-        this.dispoLevels[0] = uniqueLevel1.filter((v) => v && v.trim() !== "");
+          // Mark saved dispositions as selected
+          const savedDispoValues = savedDispositionsByCampaign[campaignName];
+          const allDispositions =
+            this.dispositionsByCampaign[campaign.id] || [];
+
+          if (savedDispoValues.some((d) => d.value1 === "*")) {
+            // All dispositions are selected
+            allDispositions.forEach((dispo) => {
+              dispo.selected = true;
+            });
+          } else {
+            // Select specific dispositions by matching value1, value2, value3
+            allDispositions.forEach((dispo) => {
+              const match = savedDispoValues.find(
+                (saved) =>
+                  saved.value1 === dispo.value1 &&
+                  saved.value2 === dispo.value2 &&
+                  saved.value3 === dispo.value3
+              );
+              if (match) {
+                dispo.selected = true;
+              }
+            });
+          }
+        }
+
+        // Set the first selected campaign as current if any
+        if (this.selectedCampaigns.length > 0) {
+          this.currentCampaignId = this.selectedCampaigns[0];
+        }
+
+        console.log("Saved configuration loaded successfully");
       } catch (error) {
-        console.error("Error loading dispositions:", error);
+        console.error("Error loading saved configuration:", error);
+        // Don't show error to user, just log it - form can still be used
       }
     },
-    async loadCampaignNumbers() {
-      try {
-        const query = `SELECT did FROM ccdata.queues WHERE name = '${this.campaign.name}'`;
-        const result = await UC_get_async(query);
-        const numbersData = JSON.parse(result);
 
-        if (numbersData && numbersData.length > 0) {
-          // each did has to be seprated, they all are concatenated in a single string with &
-          this.campaign.numbers = numbersData
-            .map((n) => n.did)
-            .flatMap((num) => num.split(":").map((n) => n.trim()))
-            .filter((n) => n && n !== "");
-        } else {
-          this.campaign.numbers = [];
+    toggleCampaign(campaign) {
+      // Toggle the campaign selection
+      if (campaign.selected) {
+        // Unchecking the campaign - deselect it and clear all its selections
+        campaign.selected = false;
+
+        // Remove from selected campaigns array
+        const index = this.selectedCampaigns.indexOf(campaign.id);
+        if (index > -1) {
+          this.selectedCampaigns.splice(index, 1);
         }
+
+        // Clear all agent selections for this campaign
+        if (this.agentsByCampaign[campaign.id]) {
+          this.agentsByCampaign[campaign.id].forEach((agent) => {
+            agent.selected = false;
+          });
+        }
+
+        // Clear all disposition selections for this campaign
+        if (this.dispositionsByCampaign[campaign.id]) {
+          this.dispositionsByCampaign[campaign.id].forEach((disposition) => {
+            disposition.selected = false;
+          });
+        }
+
+        // If this was the current campaign, switch to another or clear
+        if (this.currentCampaignId === campaign.id) {
+          // Set to the first remaining selected campaign, or null
+          this.currentCampaignId =
+            this.selectedCampaigns.length > 0
+              ? this.selectedCampaigns[0]
+              : null;
+        }
+      } else {
+        // Checking the campaign - enable it and set as current
+        campaign.selected = true;
+
+        // Add campaign to selected list if not already there
+        if (!this.selectedCampaigns.includes(campaign.id)) {
+          this.selectedCampaigns.push(campaign.id);
+        }
+
+        // Set as current campaign
+        this.currentCampaignId = campaign.id;
+
+        // Load agents and dispositions for this campaign if not already loaded
+        if (!this.agentsByCampaign[campaign.id]) {
+          this.loadAgentsForCampaign(campaign.id, campaign.name);
+        }
+        if (!this.dispositionsByCampaign[campaign.id]) {
+          this.loadDispositionsForCampaign(campaign.id);
+        }
+      }
+    },
+
+    toggleCampaignSelection(campaign) {
+      // This is called when clicking the checkbox
+      this.toggleCampaign(campaign);
+    },
+
+    viewCampaign(campaign) {
+      // This is called when clicking the list item (not the checkbox)
+      // Only view/switch to the campaign if it's already selected
+      if (campaign.selected) {
+        this.currentCampaignId = campaign.id;
+      } else {
+        // If not selected, select it
+        this.toggleCampaign(campaign);
+      }
+    },
+
+    async loadAgentsForCampaign(campaignId, campaignName) {
+      try {
+        // Get the campaign name
+        const campaign = this.campaigns.find((c) => c.id === campaignId);
+        const queueName = campaignName || campaign?.name;
+
+        if (!queueName) {
+          console.error("Campaign name not found for id:", campaignId);
+          this.agentsByCampaign[campaignId] = [];
+          return;
+        }
+
+        // Fetch agents from UC API
+        const response = await UC_Http_proxy({
+          url: `https://${instance}/Integra/resources/queues/getqueuemembersofqueue?queue=${queueName}`,
+          method: "POST",
+          headers: {
+            Authorization: `Basic ${Agent.token}`,
+            "Content-type": "application/x-www-form-urlencoded",
+          },
+        });
+
+        // Parse the response
+        const data = JSON.parse(response.body);
+
+        // Transform agents data - extract membername and create proper structure
+        const agents = data.map((agent, index) => ({
+          id: `${campaignId}-${index}`,
+          name: agent.membername,
+          email: "", // No email provided in the response
+          selected: false,
+        }));
+
+        this.agentsByCampaign[campaignId] = agents;
       } catch (error) {
-        console.error("Error loading campaign numbers:", error);
-        this.campaign.numbers = [];
+        console.error("Error loading agents for campaign:", campaignId, error);
+        // Set empty array on error
+        this.agentsByCampaign[campaignId] = [];
       }
     },
-    loadNext(level) {
-      if (level === 0) {
-        this.selected[1] = "";
-        this.selected[2] = "";
 
-        const level2Options = this.dispositions
-          .filter((d) => d.value1 === this.selected[0])
-          .map((d) => d.value2)
-          .filter((v) => v && v.trim() !== "");
+    async loadDispositionsForCampaign(campaignId) {
+      try {
+        // Get the campaign name
+        const campaign = this.campaigns.find((c) => c.id === campaignId);
+        const campaignName = campaign?.name;
 
-        this.dispoLevels[1] = [...new Set(level2Options)];
+        if (!campaignName) {
+          console.error("Campaign name not found for id:", campaignId);
+          this.dispositionsByCampaign[campaignId] = [];
+          return;
+        }
 
-        this.dispoLevels[2] = [];
-      }
+        // Fetch dispositions from database
+        const response = await UC_get_async(
+          `SELECT value1,value2,value3 FROM dispositions WHERE campaign = '${campaignName}'`,
+          "Data"
+        );
 
-      if (level === 1) {
-        this.selected[2] = "";
+        // Parse the response
+        const data = JSON.parse(response);
 
-        const level3Options = this.dispositions
-          .filter(
-            (d) =>
-              d.value1 === this.selected[0] && d.value2 === this.selected[1]
-          )
-          .map((d) => d.value3)
-          .filter((v) => v && v.trim() !== "");
+        // Transform dispositions data - format as "value1 | value2 | value3"
+        const dispositions = data.map((dispo, index) => {
+          // Build the name by concatenating non-empty values with " | "
+          const parts = [];
+          if (dispo.value1 && dispo.value1.trim() !== "")
+            parts.push(dispo.value1);
+          if (dispo.value2 && dispo.value2.trim() !== "")
+            parts.push(dispo.value2);
+          if (dispo.value3 && dispo.value3.trim() !== "")
+            parts.push(dispo.value3);
 
-        this.dispoLevels[2] = [...new Set(level3Options)];
+          const displayName = parts.join(" | ");
+
+          return {
+            id: `${campaignId}-${index}`,
+            name: displayName,
+            description: "", // No description from this query
+            selected: false,
+            // Keep original values for reference if needed
+            value1: dispo.value1,
+            value2: dispo.value2,
+            value3: dispo.value3,
+          };
+        });
+
+        this.dispositionsByCampaign[campaignId] = dispositions;
+      } catch (error) {
+        console.error(
+          "Error loading dispositions for campaign:",
+          campaignId,
+          error
+        );
+        // Set empty array on error
+        this.dispositionsByCampaign[campaignId] = [];
       }
     },
-    async finish() {
-      this.isFinishing = true;
+
+    selectAllAgents(select) {
+      // Select or deselect all agents for the current campaign
+      if (
+        this.currentCampaignId &&
+        this.agentsByCampaign[this.currentCampaignId]
+      ) {
+        this.agentsByCampaign[this.currentCampaignId].forEach((agent) => {
+          agent.selected = select;
+        });
+      }
+    },
+
+    selectAllDispositions(select) {
+      // Select or deselect all dispositions for the current campaign
+      if (
+        this.currentCampaignId &&
+        this.dispositionsByCampaign[this.currentCampaignId]
+      ) {
+        this.dispositionsByCampaign[this.currentCampaignId].forEach(
+          (disposition) => {
+            disposition.selected = select;
+          }
+        );
+      }
+    },
+
+    async saveForm() {
+      if (this.selectedCampaigns.length === 0) {
+        this.showSnackbar("Please select at least one campaign", "warning");
+        return;
+      }
+
+      this.isSaving = true;
 
       try {
-        await this.saveClientDisposition();
+        // Step 1: Clear old configuration
+        console.log("Clearing old configuration...");
+        await UC_exec_async(
+          `DELETE FROM ccrepo.InteractionAISettings_Agents;`,
+          "",
+          true
+        );
+        await UC_exec_async(
+          `DELETE FROM ccrepo.InteractionAISettings_Dispositions;`,
+          "",
+          true
+        );
 
-        if (this.hasCTI) {
-          UC_closeForm();
+        // Step 2: Process each selected campaign
+        let savedCount = 0;
+
+        for (const campaignId of this.selectedCampaigns) {
+          const campaign = this.campaigns.find((c) => c.id === campaignId);
+          if (!campaign) continue;
+
+          const campaignName = campaign.name;
+
+          // Get selected agents and dispositions for this campaign
+          const selectedAgents =
+            this.agentsByCampaign[campaignId]?.filter((a) => a.selected) || [];
+          const selectedDispositions =
+            this.dispositionsByCampaign[campaignId]?.filter(
+              (d) => d.selected
+            ) || [];
+
+          // Get total agents and dispositions (already loaded)
+          const totalAgents = this.agentsByCampaign[campaignId] || [];
+          const totalDispositions =
+            this.dispositionsByCampaign[campaignId] || [];
+
+          // Save Agents
+          if (selectedAgents.length > 0) {
+            // If all agents are selected, insert * to represent all
+            if (selectedAgents.length === totalAgents.length) {
+              await UC_exec_async(
+                `INSERT INTO ccrepo.InteractionAISettings_Agents (campaign, agent_name) VALUES ("${campaignName}", "*");`,
+                "",
+                true
+              );
+            } else {
+              // Insert each selected agent individually
+              for (const agent of selectedAgents) {
+                await UC_exec_async(
+                  `INSERT INTO ccrepo.InteractionAISettings_Agents (campaign, agent_name) VALUES ("${campaignName}", "${agent.name}");`,
+                  "",
+                  true
+                );
+              }
+            }
+          }
+
+          // Save Dispositions
+          if (selectedDispositions.length > 0) {
+            // If all dispositions are selected, insert * to represent all
+            if (selectedDispositions.length === totalDispositions.length) {
+              await UC_exec_async(
+                `INSERT INTO ccrepo.InteractionAISettings_Dispositions (campaign, value1) VALUES ("${campaignName}", "*");`,
+                "",
+                true
+              );
+            } else {
+              // Insert each selected disposition individually
+              for (const dispo of selectedDispositions) {
+                // Use the original value1, value2, value3 from the database
+                const value1 = dispo.value1 || "";
+                const value2 = dispo.value2 || "";
+                const value3 = dispo.value3 || "";
+
+                await UC_exec_async(
+                  `INSERT INTO ccrepo.InteractionAISettings_Dispositions (campaign, value1, value2, value3) VALUES ("${campaignName}", "${value1}", "${value2}", "${value3}");`,
+                  "",
+                  true
+                );
+              }
+            }
+          }
+
+          savedCount++;
         }
 
-        // Unblock UI after finishing
-        this.isCallActive = false;
-
-        // Clear campaign selection if no CTI
-        if (!this.hasCTI) {
-          this.campaign.name = "";
-        }
-        // Reset form but don't auto-load next client
-        this.resetForm();
-
-        notification(
-          "Success",
-          "Client processed successfully!",
-          "fa fa-check",
-          "success"
+        // Success notification
+        console.log("Configuration saved successfully!");
+        this.showSnackbar(
+          `Configuration saved successfully! ${savedCount} campaign(s) configured`,
+          "success",
+          4000
         );
       } catch (error) {
-        console.error("Error in finish process:", error);
-        notification(
-          "Error",
-          "Error saving data: " + error.message,
-          "fa fa-times",
-          "danger"
+        console.error("Error saving configuration:", error);
+        this.showSnackbar(
+          "Error saving configuration: " + error.message,
+          "error",
+          5000
         );
       } finally {
-        this.isFinishing = false;
+        this.isSaving = false;
       }
     },
-    async saveClientDisposition() {
-      try {
-        await UC_DispositionCall_async(
-          this.campaign.name,
-          this.clientData.Phone,
-          this.ctiData.Guid,
-          this.selected[0],
-          this.selected[1],
-          this.selected[2],
-          this.notes
-        );
-      } catch (error) {
-        console.error("Error saving client disposition:", error);
-        throw error;
-      }
-    },
-    async callPhone() {
-      const phone = this.clientData.Phone;
 
-      if (phone) {
-        if (!this.campaign.name) {
-          notification(
-            "Warning",
-            "Please select a campaign before making a call.",
-            "fa fa-warning",
-            "warning"
-          );
-          return;
-        }
-
-        let selectedNumber = null;
-
-        if (this.campaign.numbers && this.campaign.numbers.length > 1) {
-          // Show modal to select the number
-          selectedNumber = await this.showNumberSelectionModal(
-            this.campaign.numbers
-          );
-          if (!selectedNumber) {
-            return; // User cancelled selection
-          }
-        } else if (
-          this.campaign.numbers &&
-          this.campaign.numbers.length === 1
-        ) {
-          // Use the only available number
-          selectedNumber = this.campaign.numbers[0];
-        } else {
-          notification(
-            "Warning",
-            "No phone numbers available for this campaign",
-            "fa fa-warning",
-            "warning"
-          );
-          return;
-        }
-
-        try {
-          const response = await UC_makeCall_async(
-            this.campaign.name,
-            selectedNumber,
-            phone,
-            false
-          );
-
-          this.clientData.Guid = response;
-          this.isCallActive = true;
-        } catch (error) {
-          console.error("Error making call:", error);
-          notification(
-            "Error",
-            "Error making call: " + error.message,
-            "fa fa-times",
-            "danger"
-          );
-        }
-      } else {
-        notification(
-          "Warning",
-          "No phone number available",
-          "fa fa-warning",
-          "warning"
-        );
-      }
-    },
-    showNumberSelectionModal(numbers) {
-      return new Promise((resolve) => {
-        this.numberOptions = numbers;
-        this.selectedNumber = null;
-        this.numberSelectionResolve = resolve;
-        this.showNumberModal = true;
-      });
-    },
-
-    selectNumber(number) {
-      this.selectedNumber = number;
-    },
-
-    confirmNumberSelection() {
-      if (this.selectedNumber && this.numberSelectionResolve) {
-        this.numberSelectionResolve(this.selectedNumber);
-        this.closeNumberModal();
-      } else {
-        notification(
-          "Warning",
-          "Please select a number",
-          "fa fa-warning",
-          "warning"
-        );
-      }
-    },
-    cancelNumberSelection() {
-      if (this.numberSelectionResolve) {
-        this.numberSelectionResolve(null);
-        this.closeNumberModal();
-      }
-    },
-    closeNumberModal() {
-      this.showNumberModal = false;
-      this.numberOptions = [];
-      this.selectedNumber = null;
-      this.numberSelectionResolve = null;
+    updateToken() {
+      // Implement token update logic here
+      console.log("Updating token...");
+      alert("Token update feature - implement your logic here");
     },
   },
 })
