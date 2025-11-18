@@ -29,13 +29,12 @@
   background-color: #4caf50 !important; 
 }
 
-.whatsapp-btn {
-  background-color: #25d366 !important;
-  color: white !important;
-  align-self: flex-start !important;
-  margin-top: 0px !important;
+#mainContainer {
+  border-radius: 8px;
+  background-color: #3b6ab4 !important;
 }
 
-.whatsapp-btn:hover {
-  background-color: #1da851 !important;
+.v-card {
+  border-radius: 8px;
+  background-color: #285cb1 !important;
 }

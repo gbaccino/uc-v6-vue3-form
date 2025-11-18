@@ -27,54 +27,51 @@
   <body>
     <div id="app">
       <v-app>
-        <v-container class="bg-grey-lighten-3 pa-6" style="border-radius: 8px">
+        <v-container id="mainContainer">
           <v-row>
             <!-- Lado izquierdo -->
-            <v-col cols="4">
-              <v-card variant="elevated" class="bg-grey-lighten-4 pa-4">
-                <template v-for="(value, key) in clientData" :key="key">
-                  <div v-if="key === 'Phone'" class="d-flex align-center mb-3">
-                    <v-text-field
-                      v-model="clientData[key]"
-                      :label="key"
-                      readonly
-                      density="compact"
-                      class="flex-grow-1 mr-2"
-                    ></v-text-field>
-                    <v-btn
-                      icon
-                      size="small"
-                      color="green"
-                      @click="callPhone"
-                      class="phone-btn"
-                      :disabled="isCallActive"
-                    >
-                      <v-icon>mdi-phone</v-icon>
-                    </v-btn>
-                  </div>
-                  <v-text-field
-                    v-else
-                    v-model="clientData[key]"
-                    :label="key"
-                    readonly
-                    density="compact"
-                  ></v-text-field>
-                </template>
+            <v-col cols="6">
+              <v-card variant="elevated" class="text-white pa-4">
+                <v-text-field
+                  label="Campana"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                  class="w-50"
+                ></v-text-field>
+                <v-text-field
+                  label="Agente"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                  class="w-50"
+                ></v-text-field>
+                <v-text-field
+                  label="GUID"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                  class="w-50"
+                ></v-text-field>
+                <v-btn class="bg bg-green mr-6">Tokenización</v-btn>
+                <v-btn class="bg bg-green ml-6">Sanas Practicas</v-btn>
               </v-card>
             </v-col>
 
             <!-- Lado derecho -->
-            <v-col cols="8">
-              <v-card variant="elevated" class="bg-grey-lighten-4 pa-4">
-                <h4 class="mb-4">Dispositions</h4>
+            <v-col cols="6">
+              <v-card variant="elevated" class="text-white pa-4">
+                <h4 class="mb-4">Tipificaciones</h4>
 
                 <!-- Campaign selector - always show, disable when CTI present or call active -->
                 <v-autocomplete
                   v-model="campaign.name"
                   :items="availableCampaigns"
-                  label="Campaign"
+                  label="Campaña"
                   density="compact"
-                  class="mb-3"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                  class="w-75 mb-3"
                   :disabled="hasCTI || isCallActive"
                   :readonly="hasCTI || isCallActive"
                   @update:model-value="onCampaignSelected"
@@ -84,8 +81,10 @@
                   v-if="dispoLevels[0] && dispoLevels[0].length > 0"
                   v-model="selected[0]"
                   :items="dispoLevels[0]"
-                  label="Level 1"
+                  label="Nivel 1"
                   density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
                   @update:model-value="loadNext(0)"
                 ></v-autocomplete>
 
@@ -93,8 +92,10 @@
                   v-if="selected[0] && dispoLevels[1] && dispoLevels[1].length > 0"
                   v-model="selected[1]"
                   :items="dispoLevels[1]"
-                  label="Level 2"
+                  label="Nivel 2"
                   density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
                   @update:model-value="loadNext(1)"
                 ></v-autocomplete>
 
@@ -102,14 +103,18 @@
                   v-if="selected[1] && dispoLevels[2] && dispoLevels[2].length > 0"
                   v-model="selected[2]"
                   :items="dispoLevels[2]"
-                  label="Level 3"
+                  label="Nivel 3"
                   density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
                 ></v-autocomplete>
 
                 <v-textarea
                   v-model="notes"
-                  label="Notes"
+                  label="Notas"
                   density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
                 ></v-textarea>
               </v-card>
 
@@ -125,47 +130,39 @@
               </v-btn>
             </v-col>
           </v-row>
+          <v-row>
+            <v-col cols="12" class="mt-4">
+              <v-card variant="elevated" class="text-white pa-4">
+                <v-row>
+                  <v-col cols="6">
+                    <template v-for="key in leftKeys" :key="key">
+                      <v-text-field
+                        v-model="clientData[key]"
+                        :label="formatLabel(key)"
+                        density="compact"
+                        bg-color="light-blue-darken-4"
+                        variant="solo"
+                        class="w-75"
+                      ></v-text-field>
+                    </template>
+                  </v-col>
+                  <v-col cols="6">
+                    <template v-for="key in rightKeys" :key="key">
+                      <v-text-field
+                        v-model="clientData[key]"
+                        :label="formatLabel(key)"
+                        density="compact"
+                        bg-color="light-blue-darken-4"
+                        variant="solo"
+                        class="w-75"
+                      ></v-text-field>
+                    </template>
+                  </v-col>
+                </v-row>
+              </v-card>
+            </v-col>
+          </v-row>
         </v-container>
-
-        <!-- Number Selection Modal -->
-        <v-dialog v-model="showNumberModal" max-width="400" persistent>
-          <v-card>
-            <v-card-title class="text-h6">
-              <v-icon class="mr-2">mdi-phone</v-icon>
-              Select Phone Number
-            </v-card-title>
-
-            <v-card-text>
-              <p class="mb-4">Choose a phone number to make the call:</p>
-
-              <v-radio-group v-model="selectedNumber" density="compact">
-                <v-radio
-                  v-for="(number, index) in numberOptions"
-                  :key="index"
-                  :value="number"
-                  :label="number"
-                  color="primary"
-                  @click="selectNumber(number)"
-                ></v-radio>
-              </v-radio-group>
-            </v-card-text>
-
-            <v-card-actions>
-              <v-spacer></v-spacer>
-              <v-btn text @click="cancelNumberSelection" color="grey">
-                Cancel
-              </v-btn>
-              <v-btn
-                color="primary"
-                @click="confirmNumberSelection"
-                :disabled="!selectedNumber"
-              >
-                <v-icon class="mr-1">mdi-phone</v-icon>
-                Call
-              </v-btn>
-            </v-card-actions>
-          </v-card>
-        </v-dialog>
       </v-app>
     </div>
 
