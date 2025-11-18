@@ -1,0 +1,13 @@
+{
+  "InteractionAIConfig": {
+    "title": "Interaction AI configuration",
+    "Campaigns": " Campaigns",
+    "Agents": " Agents",
+    "Dispositions": " Dispositions",
+    "Saveconfig": "Save configuration",
+    "SetToken": "Set Interaction AI Token",
+    "UpdateToken": "Update Token",
+    "Cancel": "Cancel",
+    "Save": "Save"
+  }
+}

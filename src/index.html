@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>Vue + Vuetify Test</title>
+    <title>Interaction AI configuration</title>
 
     <!-- Vuetify CSS -->
     <link
@@ -19,6 +19,9 @@
     <!-- Vue -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
 
+    <!-- i18next (replaces vue-i18n) -->
+    <script src="https://unpkg.com/i18next/dist/umd/i18next.min.js"></script>
+
     <!-- Vuetify JS -->
     <script src="https://cdn.jsdelivr.net/npm/vuetify@3.6.11/dist/vuetify.min.js"></script>
 
@@ -34,7 +37,7 @@
               <v-card variant="elevated" class="bg-grey-lighten-4 pa-4">
                 <v-card-title class="text-h6 mb-4">
                   <v-icon class="mr-2">mdi-bullhorn</v-icon>
-                  Campaigns
+                  {{ i18n.t('InteractionAIConfig.Campaigns') }}
                 </v-card-title>
                 <v-card-text>
                   <v-list v-if="campaigns.length > 0">
@@ -82,7 +85,7 @@
               <v-card variant="elevated" class="bg-grey-lighten-4 pa-4">
                 <v-card-title class="text-h6 mb-2">
                   <v-icon class="mr-2">mdi-account-group</v-icon>
-                  Agents
+                  {{ i18n.t('InteractionAIConfig.Agents') }}
                   <span
                     v-if="currentCampaign"
                     class="text-caption ml-2 text-grey"
@@ -151,7 +154,7 @@
               <v-card variant="elevated" class="bg-grey-lighten-4 pa-4">
                 <v-card-title class="text-h6 mb-2">
                   <v-icon class="mr-2">mdi-clipboard-list</v-icon>
-                  Dispositions
+                  {{ i18n.t('InteractionAIConfig.Dispositions') }}
                   <span
                     v-if="currentCampaign"
                     class="text-caption ml-2 text-grey"
@@ -232,7 +235,8 @@
                 prepend-icon="mdi-key"
                 :disabled="isSaving"
               >
-                {{ tokenButtonLabel }}
+                {{ currentToken ? i18n.t('InteractionAIConfig.UpdateToken') :
+                i18n.t('InteractionAIConfig.SetToken') }}
               </v-btn>
               <v-btn
                 color="success"
@@ -243,7 +247,7 @@
                 :loading="isSaving"
                 :disabled="!hasSelectedCampaigns"
               >
-                Save
+                {{ i18n.t('InteractionAIConfig.Save') }}
               </v-btn>
             </v-col>
           </v-row>
@@ -254,7 +258,8 @@
           <div class="px-6 py-3 bg-white rounded-lg">
             <v-card-title class="text-h5">
               <v-icon icon="mdi-key" class="mr-2"></v-icon>
-              {{ currentToken ? 'Update Token' : 'Set Token' }}
+              {{ currentToken ? i18n.t('InteractionAIConfig.UpdateToken') :
+              i18n.t('InteractionAIConfig.SetToken') }}
             </v-card-title>
             <div class="px-6 py-3">
               <v-text-field
@@ -276,7 +281,7 @@
                 @click="closeTokenDialog"
                 :disabled="isSavingToken"
               >
-                Cancel
+                {{ i18n.t('InteractionAIConfig.Cancel') }}
               </v-btn>
               <v-btn
                 color="primary"
@@ -284,7 +289,7 @@
                 @click="saveToken"
                 :loading="isSavingToken"
               >
-                Accept
+                {{ i18n.t('InteractionAIConfig.Save') }}
               </v-btn>
             </div>
           </div>
