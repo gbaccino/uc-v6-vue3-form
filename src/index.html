@@ -33,22 +33,31 @@
             <v-col cols="6">
               <v-card variant="elevated" class="text-white pa-4">
                 <v-text-field
+                  v-model="campaign.name"
+                  placeholder="Campana"
                   label="Campana"
                   density="compact"
+                  readonly
                   bg-color="light-blue-darken-4"
                   variant="solo"
                   class="w-50"
                 ></v-text-field>
                 <v-text-field
+                  v-model="agent"
+                  placeholder="Agente"
                   label="Agente"
                   density="compact"
+                  readonly
                   bg-color="light-blue-darken-4"
                   variant="solo"
                   class="w-50"
                 ></v-text-field>
                 <v-text-field
+                  v-model="ctiData.Guid"
+                  placeholder="GUID"
                   label="GUID"
                   density="compact"
+                  readonly
                   bg-color="light-blue-darken-4"
                   variant="solo"
                   class="w-50"
@@ -123,7 +132,7 @@
                 class="mt-4 finish-btn"
                 color="primary"
                 :loading="isFinishing"
-                :disabled="!clientData.Guid"
+                :disabled="!(ctiData && ctiData.Guid)"
                 @click="finish"
               >
                 Finish

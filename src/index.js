@@ -31,7 +31,7 @@ createApp({
       dispositions: [],
       selected: ["", "", ""],
       isFinishing: false,
-      ctiData: null,
+      ctiData: {},
       campaign: {
         name: "",
         numbers: [],
@@ -79,11 +79,11 @@ createApp({
         if (typeof Agent !== "undefined" && Agent && Agent.accountcode) {
           this.agent = Agent.accountcode;
         } else {
-          this.agent = "noAgent";
+          this.agent = "No agent";
         }
       } catch (error) {
         console.error("Error getting agent account code:", error);
-        this.agent = "noAgent";
+        this.agent = "No agent";
       }
     },
     formatLabel(key) {
