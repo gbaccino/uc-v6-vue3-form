@@ -45,6 +45,9 @@ createApp({
       numberSelectionResolve: null, // Promise resolver for modal
       isCallActive: false, // Track if a call is currently active
       notes: "", // Store notes for the client
+      // Sanas button state and optional check URL
+      sanasEnabled: false,
+      sanasCheckUrl: "", // set to an endpoint if you have one (example: '/api/sanas/check')
     };
   },
   mounted() {
@@ -114,6 +117,28 @@ createApp({
     resetForm() {
       this.selected = ["", "", ""];
       this.dispoLevels = [[], [], []];
+    },
+    /**
+     * Check Sanas availability by calling `url` (or `this.sanasCheckUrl` or default).
+     * If the HTTP response has status 200 the `sanasEnabled` flag is set to true.
+     * Returns the fetch response (or throws on network error).
+     */
+    async checkSanas(url) {
+      const endpoint = url || this.sanasCheckUrl || "/sanas/check";
+      try {
+        const res = await fetch(endpoint, { method: "GET" });
+        if (res && res.status === 200) {
+          this.sanasEnabled = true;
+        } else {
+          this.sanasEnabled = false;
+        }
+        return res;
+      } catch (e) {
+        // network or other error -> keep disabled
+        this.sanasEnabled = false;
+        console.error("Error checking Sanas availability:", e);
+        throw e;
+      }
     },
     async loadAvailableCampaigns() {
       try {

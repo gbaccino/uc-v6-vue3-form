@@ -62,8 +62,8 @@
                   variant="solo"
                   class="w-50"
                 ></v-text-field>
-                <v-btn class="bg bg-green mr-6">Tokenización</v-btn>
-                <v-btn class="bg bg-green ml-6">Sanas Practicas</v-btn>
+                <v-btn class="bg bg-green mr-6" id="transferTokeni">Tokenización</v-btn>
+                <v-btn class="bg bg-green ml-6" id="transferSanas" :disabled="!sanasEnabled">Sanas Practicas</v-btn>
               </v-card>
             </v-col>
 
