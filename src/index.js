@@ -2,6 +2,7 @@ const { createApp } = Vue;
 const { createVuetify } = Vuetify;
 
 const vuetify = createVuetify();
+const api_url = "http://localhost:8085/IntegraChannels/resources/webhook";
 
 // Sample CTI : '{"Guid":"824da669-2239-46f2-98c7-1a8cafa34701","Screen":"FALSE","Form":"testCapacitacion","Campaign":"SalienteTest->","Callerid":"17410632","ParAndValues":"","Beep":"FALSE","Answer":"FALSE"}'
 
@@ -45,9 +46,7 @@ createApp({
       numberSelectionResolve: null, // Promise resolver for modal
       isCallActive: false, // Track if a call is currently active
       notes: "", // Store notes for the client
-      // Sanas button state and optional check URL
-      sanasEnabled: false,
-      sanasCheckUrl: "", // set to an endpoint if you have one (example: '/api/sanas/check')
+      rescheduleDate: "", // Store reschedule date in YYYY-MM-DD HH:mm:ss format
     };
   },
   mounted() {
@@ -64,6 +63,53 @@ createApp({
       const half = Math.ceil(keys.length / 2);
       return keys.slice(half);
     },
+    needsReschedule() {
+      if (!this.selected[0]) return false;
+
+      // Find disposition that matches the selected values
+      const matchingDispos = this.dispositions.filter((d) => {
+        if (this.selected[2]) {
+          // All three levels selected
+          return (
+            d.value1 === this.selected[0] &&
+            d.value2 === this.selected[1] &&
+            d.value3 === this.selected[2]
+          );
+        } else if (this.selected[1]) {
+          // Two levels selected
+          return d.value1 === this.selected[0] && d.value2 === this.selected[1];
+        } else {
+          // Only first level selected
+          return d.value1 === this.selected[0];
+        }
+      });
+
+      return matchingDispos.some((d) => d.action === "RESCHEDULE");
+    },
+    minDateTime() {
+      // Get current datetime in format YYYY-MM-DDTHH:mm for datetime-local input
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, "0");
+      const day = String(now.getDate()).padStart(2, "0");
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      return `${year}-${month}-${day}T${hours}:${minutes}`;
+    },
+    canFinish() {
+      // Check if GUID exists
+      if (!this.ctiData || !this.ctiData.Guid) return false;
+
+      // Check if all available disposition levels are selected
+      if (this.dispoLevels[0].length > 0 && !this.selected[0]) return false;
+      if (this.dispoLevels[1].length > 0 && !this.selected[1]) return false;
+      if (this.dispoLevels[2].length > 0 && !this.selected[2]) return false;
+
+      // If reschedule is needed, date must be selected
+      if (this.needsReschedule && !this.rescheduleDate) return false;
+
+      return true;
+    },
   },
   methods: {
     async initializeForm() {
@@ -73,6 +119,37 @@ createApp({
 
       if (await this.initializeCTI()) {
         this.hasCTI = true;
+
+        const formatted = new Intl.DateTimeFormat("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: false,
+        })
+          .format(new Date())
+          .replace(",", "");
+        const endpoint = api_url + "/AMEX_API_ENTRANTE";
+        const options = {
+          guid: this.ctiData.Guid,
+          phone: this.ctiData.Callerid,
+          user_id: this.agent,
+          start_date: formatted,
+          base_id: this.clientData.id_base,
+          client_id: this.clientData.id_cliente,
+        };
+        try {
+          this.makeRequest(endpoint, options);
+        } catch (error) {
+          console.error("Error making request:", error);
+          notification(
+            "Error",
+            "Error registrando la llamada: " + error.message,
+            "fa fa-times",
+            "danger"
+          );
+        }
       } else {
         this.hasCTI = false;
       }
@@ -93,6 +170,18 @@ createApp({
       if (key === null || key === undefined) return "";
       const s = String(key).replace(/_/g, " ");
       return s.charAt(0).toUpperCase() + s.slice(1);
+    },
+    formatRescheduleDate(dateTimeLocal) {
+      // Convert from datetime-local format (YYYY-MM-DDTHH:mm) to YYYY-MM-DD HH:mm:ss
+      if (!dateTimeLocal) return "";
+      const date = new Date(dateTimeLocal);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = "00";
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     },
     async initializeCTI() {
       try {
@@ -118,26 +207,45 @@ createApp({
       this.selected = ["", "", ""];
       this.dispoLevels = [[], [], []];
     },
-    /**
-     * Check Sanas availability by calling `url` (or `this.sanasCheckUrl` or default).
-     * If the HTTP response has status 200 the `sanasEnabled` flag is set to true.
-     * Returns the fetch response (or throws on network error).
-     */
-    async checkSanas(url) {
-      const endpoint = url || this.sanasCheckUrl || "/sanas/check";
-      try {
-        const res = await fetch(endpoint, { method: "GET" });
-        if (res && res.status === 200) {
-          this.sanasEnabled = true;
-        } else {
-          this.sanasEnabled = false;
-        }
-        return res;
-      } catch (e) {
-        // network or other error -> keep disabled
-        this.sanasEnabled = false;
-        console.error("Error checking Sanas availability:", e);
-        throw e;
+    async transferTokenizacion() {
+      if (!this.ctiData || !this.ctiData.Guid) {
+        notification(
+          "Warning",
+          "CTI o GUID no disponible.",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      this.realizarTransferencia("tokenizacion");
+    },
+    async transferSanas() {
+      if (!this.ctiData || !this.ctiData.Guid) {
+        notification(
+          "Warning",
+          "CTI o GUID no disponible.",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      const endpoint = api_url + "/AMEX_API_SANAS_GET";
+      const options = { guid: this.ctiData.Guid };
+
+      const response = await this.makeRequest(endpoint, options);
+      console.log(response);
+
+      if (response.status === 200) {
+        this.realizarTransferencia("sanas");
+      } else {
+        notification(
+          "Warning",
+          response.message || "No cumple criterios para transferencia a Sanas.",
+          "fa fa-warning",
+          "warning"
+        );
       }
     },
     async loadAvailableCampaigns() {
@@ -159,8 +267,6 @@ createApp({
     },
     async onCampaignSelected() {
       if (this.campaign.name) {
-        await this.loadCampaignNumbers();
-
         // Reset form when campaign changes
         this.resetForm();
 
@@ -229,26 +335,6 @@ createApp({
         console.error("Error loading dispositions:", error);
       }
     },
-    async loadCampaignNumbers() {
-      try {
-        const query = `SELECT did FROM ccdata.queues WHERE name = '${this.campaign.name}'`;
-        const result = await UC_get_async(query);
-        const numbersData = JSON.parse(result);
-
-        if (numbersData && numbersData.length > 0) {
-          // each did has to be seprated, they all are concatenated in a single string with &
-          this.campaign.numbers = numbersData
-            .map((n) => n.did)
-            .flatMap((num) => num.split(":").map((n) => n.trim()))
-            .filter((n) => n && n !== "");
-        } else {
-          this.campaign.numbers = [];
-        }
-      } catch (error) {
-        console.error("Error loading campaign numbers:", error);
-        this.campaign.numbers = [];
-      }
-    },
     loadNext(level) {
       if (level === 0) {
         this.selected[1] = "";
@@ -279,6 +365,26 @@ createApp({
       }
     },
     async finish() {
+      // Validate before proceeding
+      if (!this.canFinish) {
+        let reason = "";
+
+        if (!this.ctiData || !this.ctiData.Guid) {
+          reason = "No hay GUID disponible.";
+        } else if (this.dispoLevels[0].length > 0 && !this.selected[0]) {
+          reason = "Debe seleccionar una tipificación de Nivel 1.";
+        } else if (this.dispoLevels[1].length > 0 && !this.selected[1]) {
+          reason = "Debe seleccionar una tipificación de Nivel 2.";
+        } else if (this.dispoLevels[2].length > 0 && !this.selected[2]) {
+          reason = "Debe seleccionar una tipificación de Nivel 3.";
+        } else if (this.needsReschedule && !this.rescheduleDate) {
+          reason = "Debe seleccionar una fecha de reagendado.";
+        }
+
+        notification("Advertencia", reason, "fa fa-warning", "warning");
+        return;
+      }
+
       this.isFinishing = true;
 
       try {
@@ -300,7 +406,7 @@ createApp({
 
         notification(
           "Success",
-          "Client processed successfully!",
+          "Cliente procesado exitosamente!",
           "fa fa-check",
           "success"
         );
@@ -318,125 +424,87 @@ createApp({
     },
     async saveClientDisposition() {
       try {
-        await UC_DispositionCall_async(
-          this.campaign.name,
-          this.clientData.Phone,
-          this.ctiData.Guid,
-          this.selected[0],
-          this.selected[1],
-          this.selected[2],
-          this.notes
-        );
+        if (this.needsReschedule && this.rescheduleDate) {
+          // Call with reschedule parameters
+          await UC_DispositionCall_async(
+            this.campaign.name,
+            this.clientData.Phone,
+            this.ctiData.Guid,
+            this.selected[0],
+            this.selected[1],
+            this.selected[2],
+            this.agent || "",
+            this.clientData.nombre_del_cliente || "",
+            this.notes,
+            this.rescheduleDate,
+            null
+          );
+        } else {
+          // Normal call without reschedule parameters
+          await UC_DispositionCall_async(
+            this.campaign.name,
+            this.clientData.Phone,
+            this.ctiData.Guid,
+            this.selected[0],
+            this.selected[1],
+            this.selected[2],
+            this.agent || "",
+            this.clientData.nombre_del_cliente || "",
+            this.notes
+          );
+        }
       } catch (error) {
         console.error("Error saving client disposition:", error);
         throw error;
       }
     },
-    async callPhone() {
-      const phone = this.clientData.Phone;
-
-      if (phone) {
-        if (!this.campaign.name) {
-          notification(
-            "Warning",
-            "Please select a campaign before making a call.",
-            "fa fa-warning",
-            "warning"
-          );
-          return;
-        }
-
-        let selectedNumber = null;
-
-        if (this.campaign.numbers && this.campaign.numbers.length > 1) {
-          // Show modal to select the number
-          selectedNumber = await this.showNumberSelectionModal(
-            this.campaign.numbers
-          );
-          if (!selectedNumber) {
-            return; // User cancelled selection
-          }
-        } else if (
-          this.campaign.numbers &&
-          this.campaign.numbers.length === 1
-        ) {
-          // Use the only available number
-          selectedNumber = this.campaign.numbers[0];
-        } else {
-          notification(
-            "Warning",
-            "No phone numbers available for this campaign",
-            "fa fa-warning",
-            "warning"
-          );
-          return;
-        }
-
-        try {
-          const response = await UC_makeCall_async(
-            this.campaign.name,
-            selectedNumber,
-            phone,
-            false
-          );
-
-          this.clientData.Guid = response;
-          this.isCallActive = true;
-        } catch (error) {
-          console.error("Error making call:", error);
-          notification(
-            "Error",
-            "Error making call: " + error.message,
-            "fa fa-times",
-            "danger"
-          );
-        }
-      } else {
+    pausarAgente() {
+      let query = `UPDATE ccdata.asterisk_members SET paused = '1' WHERE membername = '${membername}';`;
+      UC_exec(query, "");
+    },
+    realizarTransferencia(to) {
+      let extension = "";
+      let destination = "";
+      if (to === "tokenizacion") {
+        extension = "##88888#";
+        destination = "Tokenización";
+      } else if (to === "sanas") {
+        extension = "##77777#";
+        destination = "Sanas Prácticas";
+      }
+      if (parent.__isInCall()) {
         notification(
-          "Warning",
-          "No phone number available",
-          "fa fa-warning",
-          "warning"
+          "Transferencia",
+          `Transfiriendo llamada a ${destination}...`,
+          "fa fa-phone",
+          "info"
         );
-      }
-    },
-    showNumberSelectionModal(numbers) {
-      return new Promise((resolve) => {
-        this.numberOptions = numbers;
-        this.selectedNumber = null;
-        this.numberSelectionResolve = resolve;
-        this.showNumberModal = true;
-      });
-    },
-
-    selectNumber(number) {
-      this.selectedNumber = number;
-    },
-
-    confirmNumberSelection() {
-      if (this.selectedNumber && this.numberSelectionResolve) {
-        this.numberSelectionResolve(this.selectedNumber);
-        this.closeNumberModal();
+        parent.transfering = true;
+        parent.__SendDTMF(extension);
+        verificarLlamada();
       } else {
-        notification(
-          "Warning",
-          "Please select a number",
-          "fa fa-warning",
-          "warning"
-        );
+        console.log("No hay llamada activa");
       }
     },
-    cancelNumberSelection() {
-      if (this.numberSelectionResolve) {
-        this.numberSelectionResolve(null);
-        this.closeNumberModal();
+    async makeRequest(endpoint, options = {}) {
+      try {
+        const response = await UC_Http_proxy({
+          url: endpoint,
+          method: "POST",
+          headers: {},
+          body: JSON.stringify(options),
+          type: "application/json",
+        });
+
+        return {
+          status: response.code,
+          message: JSON.parse(response.body).message || "",
+          body: response.body,
+        };
+      } catch (error) {
+        console.error("Error making request to", endpoint, ":", error);
+        throw error;
       }
-    },
-    closeNumberModal() {
-      this.showNumberModal = false;
-      this.numberOptions = [];
-      this.selectedNumber = null;
-      this.numberSelectionResolve = null;
     },
   },
 })

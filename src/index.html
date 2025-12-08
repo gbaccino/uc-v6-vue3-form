@@ -40,7 +40,6 @@
                   readonly
                   bg-color="light-blue-darken-4"
                   variant="solo"
-                  class="w-50"
                 ></v-text-field>
                 <v-text-field
                   v-model="agent"
@@ -50,7 +49,6 @@
                   readonly
                   bg-color="light-blue-darken-4"
                   variant="solo"
-                  class="w-50"
                 ></v-text-field>
                 <v-text-field
                   v-model="ctiData.Guid"
@@ -60,10 +58,19 @@
                   readonly
                   bg-color="light-blue-darken-4"
                   variant="solo"
-                  class="w-50"
                 ></v-text-field>
-                <v-btn class="bg bg-green mr-6" id="transferTokeni">Tokenización</v-btn>
-                <v-btn class="bg bg-green ml-6" id="transferSanas" :disabled="!sanasEnabled">Sanas Practicas</v-btn>
+                <v-btn
+                  class="bg bg-green mr-6"
+                  id="transferTokeni"
+                  @click="transferTokenizacion"
+                  >Tokenización</v-btn
+                >
+                <v-btn
+                  class="bg bg-green ml-6"
+                  id="transferSanas"
+                  @click="transferSanas"
+                  >Sanas Practicas</v-btn
+                >
               </v-card>
             </v-col>
 
@@ -80,7 +87,7 @@
                   density="compact"
                   bg-color="light-blue-darken-4"
                   variant="solo"
-                  class="w-75 mb-3"
+                  class="mb-3"
                   :disabled="hasCTI || isCallActive"
                   :readonly="hasCTI || isCallActive"
                   @update:model-value="onCampaignSelected"
@@ -118,6 +125,19 @@
                   variant="solo"
                 ></v-autocomplete>
 
+                <v-text-field
+                  v-if="needsReschedule"
+                  v-model="rescheduleDate"
+                  label="Fecha de reagendado"
+                  type="datetime-local"
+                  :min="minDateTime"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                  class="datetime-picker-field"
+                  @change="rescheduleDate = formatRescheduleDate($event.target.value)"
+                ></v-text-field>
+
                 <v-textarea
                   v-model="notes"
                   label="Notas"
@@ -132,10 +152,9 @@
                 class="mt-4 finish-btn"
                 color="primary"
                 :loading="isFinishing"
-                :disabled="!(ctiData && ctiData.Guid)"
                 @click="finish"
               >
-                Finish
+                Tipificar y cerrar
               </v-btn>
             </v-col>
           </v-row>
@@ -151,7 +170,7 @@
                         density="compact"
                         bg-color="light-blue-darken-4"
                         variant="solo"
-                        class="w-75"
+                        readonly
                       ></v-text-field>
                     </template>
                   </v-col>
@@ -163,7 +182,7 @@
                         density="compact"
                         bg-color="light-blue-darken-4"
                         variant="solo"
-                        class="w-75"
+                        readonly
                       ></v-text-field>
                     </template>
                   </v-col>
