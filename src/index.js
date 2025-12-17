@@ -10,8 +10,98 @@ createApp({
   data() {
     return {
       rules: {
-        required: (value) => !!value || "Field is required",
+        required: (value) => !!value || "Campo requerido",
+        number: (value) => {
+          const numberRegex = /^\d+$/;
+          return numberRegex.test(value) || "Debe ser un número válido";
+        },
+        email: (value) => {
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return (
+            emailRegex.test(value) || "Debe ser un correo electrónico válido"
+          );
+        },
+        text_fifty_length: (value) => {
+          return (
+            (value && value.length <= 50) || "No debe exceder los 50 caracteres"
+          );
+        },
+        eleven_number_or_email: (value) => {
+          const elevenDigitRegex = /^\d{11}$/;
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return (
+            elevenDigitRegex.test(value) ||
+            emailRegex.test(value) ||
+            "Debe ser un número de 11 dígitos o un correo electrónico válido"
+          );
+        },
       },
+      userTypes: ["Proveedor", "Entidad", "Marca", "Otros"],
+      regions: [
+        "Amazonas",
+        "Ancash",
+        "Apurímac",
+        "Arequipa",
+        "Ayacucho",
+        "Cajamarca",
+        "Callao",
+        "Cusco",
+        "Huancavelica",
+        "Huánuco",
+        "Ica",
+        "Junín",
+        "La Libertad",
+        "Lambayeque",
+      ],
+      contractTypes: [
+        "Contratos menores",
+        "Compra por encargo",
+        "Compra centralizada",
+        "Compra pública de innovación",
+        "Ficha técnica",
+        "Compra directa",
+        "Acuerdo marco",
+        "Estandarización",
+        "Otros",
+      ],
+      consultDispositions: [
+        "Acceso al sistema",
+        "Acreditación de marca",
+        "Actos preparatorios",
+        "Actualización de datos",
+        "Anexo 2 proforma",
+        "Anexo 3 orden de compra",
+        "Antisoborno",
+        "Atención de visitas",
+        "Boletos aéreos",
+        "Canales de atención",
+        "Capacitación",
+        "Catálogo electrónico",
+        "Certificado presupuestal",
+        "Cesión de derechos",
+      ],
+      atentionOrgans: [
+        "Jefatura",
+        "Gerencia General",
+        "Órgano de Control Institucional",
+        "Oficina de Asesoría Jurídica",
+        "Oficina de Planeamiento y Presupuesto",
+        "Oficina de Administración",
+        "Oficina de Tecnología de la Información",
+        "Oficina de Comunicaciones",
+        "Oficina de Atención al Usuario y Gestión Documentaria",
+        "Dirección de Estrategias Técnicas y Normativas",
+        "Dirección de Compras Electrónicas y Modalidades Eficientes",
+        "Dirección de Estandarización",
+      ],
+      consultStatus: ["Atendido", "Pendiente", "Encausado"],
+      causeDetails: [
+        "Reclamo",
+        "Incidente",
+        "Denuncia",
+        "Acceso a la información",
+        "Consulta técnica",
+      ],
       clientData: {
         nombre_del_cliente: "",
         fecha_de_nacimiento: "",
@@ -50,6 +140,37 @@ createApp({
       isCallActive: false, // Track if a call is currently active
       notes: "", // Store notes for the client
       rescheduleDate: "", // Store reschedule date in YYYY-MM-DD HH:mm:ss format
+      activeTab: "form", // Control which tab is active
+      userSearch: {
+        phone: "",
+        document: "",
+        razonSocial: "",
+      },
+      userSearchResults: [],
+      isSearching: false,
+      userTableHeaders: [
+        { title: "Teléfono", key: "phone", align: "start" },
+        { title: "Documento", key: "document", align: "start" },
+        { title: "Razón Social", key: "razonSocial", align: "start" },
+        { title: "Tipo de Usuario", key: "userType", align: "start" },
+        { title: "Región", key: "region", align: "start" },
+        { title: "Acciones", key: "actions", sortable: false, align: "center" },
+      ],
+      formData: {
+        phoneOrEmail: "",
+        document: "",
+        razonSocial: "",
+        userType: "",
+        region: "",
+        contractType: "",
+        consultDisposition: "",
+        consultDetails: "",
+        acuerdoMacro: "",
+        otros: "",
+        atentionOrgan: "",
+        consultStatus: "",
+        causeDetail: "",
+      },
     };
   },
   mounted() {
@@ -508,6 +629,95 @@ createApp({
         console.error("Error making request to", endpoint, ":", error);
         throw error;
       }
+    },
+    async searchUsers() {
+      // Build WHERE clause based on filled search fields
+      const conditions = [];
+
+      if (this.userSearch.phone && this.userSearch.phone.trim() !== "") {
+        conditions.push(`phone LIKE '%${this.userSearch.phone.trim()}%'`);
+      }
+
+      if (this.userSearch.document && this.userSearch.document.trim() !== "") {
+        conditions.push(`document LIKE '%${this.userSearch.document.trim()}%'`);
+      }
+
+      if (
+        this.userSearch.razonSocial &&
+        this.userSearch.razonSocial.trim() !== ""
+      ) {
+        conditions.push(
+          `razon_social LIKE '%${this.userSearch.razonSocial.trim()}%'`
+        );
+      }
+
+      // If no search criteria provided, don't search
+      if (conditions.length === 0) {
+        notification(
+          "Advertencia",
+          "Por favor ingrese al menos un criterio de búsqueda",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      this.isSearching = true;
+
+      try {
+        // TODO: Replace with your actual table name and columns
+        const whereClause = conditions.join(" AND ");
+        const query = `SELECT phone, document, razon_social as razonSocial, user_type as userType, region, contract_type as contractType, consult_disposition as consultDisposition, consult_details as consultDetails, atention_organ as atentionOrgan, consult_status as consultStatus, cause_detail as causeDetail FROM ccdata.users WHERE ${whereClause} LIMIT 100`;
+
+        const result = await UC_get_async(query);
+        const userData = JSON.parse(result);
+
+        this.userSearchResults = userData || [];
+
+        if (this.userSearchResults.length === 0) {
+          notification(
+            "Info",
+            "No se encontraron usuarios con los criterios especificados",
+            "fa fa-info",
+            "info"
+          );
+        }
+      } catch (error) {
+        console.error("Error searching users:", error);
+        notification(
+          "Error",
+          "Error al buscar usuarios: " + error.message,
+          "fa fa-times",
+          "danger"
+        );
+        this.userSearchResults = [];
+      } finally {
+        this.isSearching = false;
+      }
+    },
+    loadUserToForm(user) {
+      // Load user data into the form fields
+      this.formData.phoneOrEmail = user.phone || "";
+      this.formData.document = user.document || "";
+      this.formData.razonSocial = user.razonSocial || "";
+      this.formData.userType = user.userType || "";
+      this.formData.region = user.region || "";
+      this.formData.contractType = user.contractType || "";
+      this.formData.consultDisposition = user.consultDisposition || "";
+      this.formData.consultDetails = user.consultDetails || "";
+      this.formData.atentionOrgan = user.atentionOrgan || "";
+      this.formData.consultStatus = user.consultStatus || "";
+      this.formData.causeDetail = user.causeDetail || "";
+
+      // Switch to form tab
+      this.activeTab = "form";
+
+      notification(
+        "Success",
+        "Usuario cargado exitosamente",
+        "fa fa-check",
+        "success"
+      );
     },
   },
 })

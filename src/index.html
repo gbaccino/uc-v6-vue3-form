@@ -28,198 +28,310 @@
     <div id="app">
       <v-app>
         <v-container id="mainContainer">
-          <v-row>
-            <!-- Lado izquierdo -->
-            <v-col cols="6">
+          <v-tabs
+            v-model="activeTab"
+            bg-color="light-blue-darken-4"
+            class="mb-4"
+          >
+            <v-tab value="form">Formulario</v-tab>
+            <v-tab value="list">Búsqueda de Usuarios</v-tab>
+          </v-tabs>
+
+          <v-window v-model="activeTab">
+            <!-- Form Tab -->
+            <v-window-item value="form">
+              <v-row>
+                <!-- Lado izquierdo -->
+                <v-col cols="6">
+                  <v-card variant="elevated" class="text-white pa-4">
+                    <v-text-field
+                      v-model="formData.phoneOrEmail"
+                      :rules="[rules.required, rules.eleven_number_or_email]"
+                      placeholder="Telefono o email"
+                      label="Telefono o email"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      error-color="amber-darken-4"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="formData.document"
+                      :rules="[rules.required, rules.number]"
+                      placeholder="Documento"
+                      label="Documento"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="formData.razonSocial"
+                      :rules="[rules.required, rules.text_fifty_length]"
+                      placeholder="Razon social"
+                      label="Razon social"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-text-field>
+                    <v-select
+                      v-model="formData.userType"
+                      :items="userTypes"
+                      label="Tipo de usuario"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-select>
+                    <v-select
+                      v-model="formData.region"
+                      :items="regions"
+                      label="Region"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-select>
+                    <v-select
+                      v-model="formData.contractType"
+                      :items="contractTypes"
+                      label="Modalidad de contratación"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-select>
+                    <v-select
+                      v-model="formData.consultDisposition"
+                      :items="consultDispositions"
+                      label="Tipificacion de la consulta"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-select>
+                    <v-textarea
+                      v-model="formData.consultDetails"
+                      placeholder="Detalles de la consulta"
+                      label="Detalles de la consulta"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-textarea>
+                    <v-text-field
+                      v-model="formData.acuerdoMacro"
+                      placeholder="FALTA DEFINIR"
+                      label="Tipo de acuerdo macro"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-text-field>
+                    <v-textarea
+                      v-model="formData.otros"
+                      placeholder="Otros"
+                      label="Otros"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-textarea>
+                  </v-card>
+                </v-col>
+
+                <!-- Lado derecho -->
+                <v-col cols="6">
+                  <v-card variant="elevated" class="text-white pa-4 mb-4">
+                    <v-select
+                      v-model="formData.atentionOrgan"
+                      :items="atentionOrgans"
+                      label="Órgano de atención"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-select>
+                    <v-select
+                      v-model="formData.consultStatus"
+                      :items="consultStatus"
+                      label="Estado de consulta"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-select>
+                    <v-select
+                      v-model="formData.causeDetail"
+                      :items="causeDetails"
+                      label="Detalles del encauzado"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-select>
+                    <v-text-field
+                      v-model="agent"
+                      placeholder="Atendido por"
+                      label="Atendido por"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      readonly
+                    ></v-text-field>
+                  </v-card>
+                  <v-card variant="elevated" class="text-white pa-4">
+                    <h4 class="mb-4">Tipificaciones</h4>
+
+                    <!-- Campaign selector - always show, disable when CTI present or call active -->
+                    <v-autocomplete
+                      v-model="campaign.name"
+                      :items="availableCampaigns"
+                      label="Campaña"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      class="mb-3"
+                      :disabled="hasCTI || isCallActive"
+                      :readonly="hasCTI || isCallActive"
+                      @update:model-value="onCampaignSelected"
+                    ></v-autocomplete>
+
+                    <v-autocomplete
+                      v-if="dispoLevels[0] && dispoLevels[0].length > 0"
+                      v-model="selected[0]"
+                      :items="dispoLevels[0]"
+                      label="Nivel 1"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      @update:model-value="loadNext(0)"
+                    ></v-autocomplete>
+
+                    <v-autocomplete
+                      v-if="selected[0] && dispoLevels[1] && dispoLevels[1].length > 0"
+                      v-model="selected[1]"
+                      :items="dispoLevels[1]"
+                      label="Nivel 2"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      @update:model-value="loadNext(1)"
+                    ></v-autocomplete>
+
+                    <v-autocomplete
+                      v-if="selected[1] && dispoLevels[2] && dispoLevels[2].length > 0"
+                      v-model="selected[2]"
+                      :items="dispoLevels[2]"
+                      label="Nivel 3"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-autocomplete>
+
+                    <v-text-field
+                      v-if="needsReschedule"
+                      v-model="rescheduleDate"
+                      label="Fecha de reagendado"
+                      type="datetime-local"
+                      :min="minDateTime"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      class="datetime-picker-field"
+                      @change="rescheduleDate = formatRescheduleDate($event.target.value)"
+                    ></v-text-field>
+
+                    <v-textarea
+                      v-model="notes"
+                      label="Notas"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-textarea>
+                  </v-card>
+
+                  <v-btn
+                    block
+                    class="mt-4 finish-btn"
+                    color="primary"
+                    :loading="isFinishing"
+                    @click="finish"
+                  >
+                    Tipificar y cerrar
+                  </v-btn>
+                </v-col>
+              </v-row>
+            </v-window-item>
+
+            <!-- User List Tab -->
+            <v-window-item value="list">
               <v-card variant="elevated" class="text-white pa-4">
-                <v-text-field
-                  placeholder="Numero"
-                  label="Numero"
+                <h3 class="mb-4">Búsqueda de Usuarios</h3>
+
+                <v-row class="mb-4">
+                  <v-col cols="12" md="4">
+                    <v-text-field
+                      v-model="userSearch.phone"
+                      label="Teléfono"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      clearable
+                      @update:model-value="searchUsers"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-text-field
+                      v-model="userSearch.document"
+                      label="Documento"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      clearable
+                      @update:model-value="searchUsers"
+                    ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-text-field
+                      v-model="userSearch.razonSocial"
+                      label="Razón Social"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      clearable
+                      @update:model-value="searchUsers"
+                    ></v-text-field>
+                  </v-col>
+                </v-row>
+
+                <v-btn
+                  color="primary"
+                  class="mb-4"
+                  @click="searchUsers"
+                  :loading="isSearching"
+                >
+                  <v-icon left>mdi-magnify</v-icon>
+                  Buscar
+                </v-btn>
+
+                <v-data-table
+                  :headers="userTableHeaders"
+                  :items="userSearchResults"
+                  :loading="isSearching"
+                  class="elevation-1"
                   density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-text-field>
-                <v-text-field
-                  placeholder="Fecha de atencion"
-                  label="Fecha de atencion"
-                  density="compact"
-                  readonly
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-text-field>
-                <v-text-field
-                  placeholder="Hora de ingreso"
-                  label="Hora de ingreso"
-                  density="compact"
-                  readonly
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-text-field>
-                <v-text-field
-                  placeholder="Hora de salida"
-                  label="Hora de salida"
-                  density="compact"
-                  readonly
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-text-field>
-                <v-text-field
-                  placeholder="RUC/DNI"
-                  label="RUC/DNI"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-text-field>
-                <v-text-field
-                  placeholder="Nombre del usuario"
-                  label="Nombre del usuario"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-text-field>
-                <v-text-field
-                  placeholder="Telefono"
-                  label="Telefono"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-text-field>
-                <v-text-field
-                  placeholder="Correo electronico"
-                  label="Correo electronico"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-text-field>
-                <v-select
-                  placeholder="Region"
-                  label="Region"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-select>
-                <v-select
-                  placeholder="Tipo de usuario"
-                  label="Tipo de usuario"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-select>
-                <v-select
-                  placeholder="Tema consultado"
-                  label="Tema consultado"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-select>
-                <v-select
-                  placeholder="Area"
-                  label="Area"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-select>
-                <v-text-field
-                  placeholder="Personal que atendio"
-                  label="Personal que atendio"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-text-field>
-                <v-text-field
-                  placeholder="Valoracion del servicio"
-                  label="Valoracion del servicio"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-text-field>
+                  :items-per-page="10"
+                >
+                  <template v-slot:item.actions="{ item }">
+                    <v-btn
+                      size="small"
+                      color="primary"
+                      @click="loadUserToForm(item)"
+                    >
+                      Cargar
+                    </v-btn>
+                  </template>
+
+                  <template v-slot:no-data>
+                    <div class="pa-4">
+                      {{ userSearchResults.length === 0 && !isSearching ? `No se
+                      encontraron usuarios. Use los filtros para buscar.`
+                      :`Cargando...` }}
+                    </div>
+                  </template>
+                </v-data-table>
               </v-card>
-            </v-col>
-
-            <!-- Lado derecho -->
-            <v-col cols="6">
-              <v-card variant="elevated" class="text-white pa-4">
-                <h4 class="mb-4">Tipificaciones</h4>
-
-                <!-- Campaign selector - always show, disable when CTI present or call active -->
-                <v-autocomplete
-                  v-model="campaign.name"
-                  :items="availableCampaigns"
-                  label="Campaña"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                  class="mb-3"
-                  :disabled="hasCTI || isCallActive"
-                  :readonly="hasCTI || isCallActive"
-                  @update:model-value="onCampaignSelected"
-                ></v-autocomplete>
-
-                <v-autocomplete
-                  v-if="dispoLevels[0] && dispoLevels[0].length > 0"
-                  v-model="selected[0]"
-                  :items="dispoLevels[0]"
-                  label="Nivel 1"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                  @update:model-value="loadNext(0)"
-                ></v-autocomplete>
-
-                <v-autocomplete
-                  v-if="selected[0] && dispoLevels[1] && dispoLevels[1].length > 0"
-                  v-model="selected[1]"
-                  :items="dispoLevels[1]"
-                  label="Nivel 2"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                  @update:model-value="loadNext(1)"
-                ></v-autocomplete>
-
-                <v-autocomplete
-                  v-if="selected[1] && dispoLevels[2] && dispoLevels[2].length > 0"
-                  v-model="selected[2]"
-                  :items="dispoLevels[2]"
-                  label="Nivel 3"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-autocomplete>
-
-                <v-text-field
-                  v-if="needsReschedule"
-                  v-model="rescheduleDate"
-                  label="Fecha de reagendado"
-                  type="datetime-local"
-                  :min="minDateTime"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                  class="datetime-picker-field"
-                  @change="rescheduleDate = formatRescheduleDate($event.target.value)"
-                ></v-text-field>
-
-                <v-textarea
-                  v-model="notes"
-                  label="Notas"
-                  density="compact"
-                  bg-color="light-blue-darken-4"
-                  variant="solo"
-                ></v-textarea>
-              </v-card>
-
-              <v-btn
-                block
-                class="mt-4 finish-btn"
-                color="primary"
-                :loading="isFinishing"
-                @click="finish"
-              >
-                Tipificar y cerrar
-              </v-btn>
-            </v-col>
-          </v-row>
+            </v-window-item>
+          </v-window>
         </v-container>
       </v-app>
     </div>
