@@ -9,6 +9,9 @@ const api_url = "http://localhost:8085/IntegraChannels/resources/webhook";
 createApp({
   data() {
     return {
+      rules: {
+        required: (value) => !!value || "Field is required",
+      },
       clientData: {
         nombre_del_cliente: "",
         fecha_de_nacimiento: "",

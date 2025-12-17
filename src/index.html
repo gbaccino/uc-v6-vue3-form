@@ -33,44 +33,106 @@
             <v-col cols="6">
               <v-card variant="elevated" class="text-white pa-4">
                 <v-text-field
-                  v-model="campaign.name"
-                  placeholder="Campana"
-                  label="Campana"
+                  placeholder="Numero"
+                  label="Numero"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                ></v-text-field>
+                <v-text-field
+                  placeholder="Fecha de atencion"
+                  label="Fecha de atencion"
                   density="compact"
                   readonly
                   bg-color="light-blue-darken-4"
                   variant="solo"
                 ></v-text-field>
                 <v-text-field
-                  v-model="agent"
-                  placeholder="Agente"
-                  label="Agente"
+                  placeholder="Hora de ingreso"
+                  label="Hora de ingreso"
                   density="compact"
                   readonly
                   bg-color="light-blue-darken-4"
                   variant="solo"
                 ></v-text-field>
                 <v-text-field
-                  v-model="ctiData.Guid"
-                  placeholder="GUID"
-                  label="GUID"
+                  placeholder="Hora de salida"
+                  label="Hora de salida"
                   density="compact"
                   readonly
                   bg-color="light-blue-darken-4"
                   variant="solo"
                 ></v-text-field>
-                <v-btn
-                  class="bg bg-green mr-6"
-                  id="transferTokeni"
-                  @click="transferTokenizacion"
-                  >Tokenización</v-btn
-                >
-                <v-btn
-                  class="bg bg-green ml-6"
-                  id="transferSanas"
-                  @click="transferSanas"
-                  >Sanas Practicas</v-btn
-                >
+                <v-text-field
+                  placeholder="RUC/DNI"
+                  label="RUC/DNI"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                ></v-text-field>
+                <v-text-field
+                  placeholder="Nombre del usuario"
+                  label="Nombre del usuario"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                ></v-text-field>
+                <v-text-field
+                  placeholder="Telefono"
+                  label="Telefono"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                ></v-text-field>
+                <v-text-field
+                  placeholder="Correo electronico"
+                  label="Correo electronico"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                ></v-text-field>
+                <v-select
+                  placeholder="Region"
+                  label="Region"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                ></v-select>
+                <v-select
+                  placeholder="Tipo de usuario"
+                  label="Tipo de usuario"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                ></v-select>
+                <v-select
+                  placeholder="Tema consultado"
+                  label="Tema consultado"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                ></v-select>
+                <v-select
+                  placeholder="Area"
+                  label="Area"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                ></v-select>
+                <v-text-field
+                  placeholder="Personal que atendio"
+                  label="Personal que atendio"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                ></v-text-field>
+                <v-text-field
+                  placeholder="Valoracion del servicio"
+                  label="Valoracion del servicio"
+                  density="compact"
+                  bg-color="light-blue-darken-4"
+                  variant="solo"
+                ></v-text-field>
               </v-card>
             </v-col>
 
@@ -156,38 +218,6 @@
               >
                 Tipificar y cerrar
               </v-btn>
-            </v-col>
-          </v-row>
-          <v-row>
-            <v-col cols="12" class="mt-4">
-              <v-card variant="elevated" class="text-white pa-4">
-                <v-row>
-                  <v-col cols="6">
-                    <template v-for="key in leftKeys" :key="key">
-                      <v-text-field
-                        v-model="clientData[key]"
-                        :label="formatLabel(key)"
-                        density="compact"
-                        bg-color="light-blue-darken-4"
-                        variant="solo"
-                        readonly
-                      ></v-text-field>
-                    </template>
-                  </v-col>
-                  <v-col cols="6">
-                    <template v-for="key in rightKeys" :key="key">
-                      <v-text-field
-                        v-model="clientData[key]"
-                        :label="formatLabel(key)"
-                        density="compact"
-                        bg-color="light-blue-darken-4"
-                        variant="solo"
-                        readonly
-                      ></v-text-field>
-                    </template>
-                  </v-col>
-                </v-row>
-              </v-card>
             </v-col>
           </v-row>
         </v-container>
