@@ -83,3 +83,13 @@
 .v-messages__message {
   color: #FF3D00 !important;
 }
+
+.custom-table,
+.custom-table th,
+.custom-table thead,
+.custom-table td,
+.custom-table tbody,
+.custom-table tr {
+  background-color: #426fb8 !important;
+  color: white !important;
+}

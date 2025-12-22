@@ -140,6 +140,8 @@ createApp({
       isCallActive: false, // Track if a call is currently active
       notes: "", // Store notes for the client
       rescheduleDate: "", // Store reschedule date in YYYY-MM-DD HH:mm:ss format
+      isSaving: false, // Track if save operation is in progress
+      interactionChannel: "", // Store the channel type: "Teléfono", "Webchat", or "SMS"
       activeTab: "form", // Control which tab is active
       userSearch: {
         phone: "",
@@ -149,10 +151,10 @@ createApp({
       userSearchResults: [],
       isSearching: false,
       userTableHeaders: [
-        { title: "Teléfono", key: "phone", align: "start" },
-        { title: "Documento", key: "document", align: "start" },
-        { title: "Razón Social", key: "razonSocial", align: "start" },
-        { title: "Tipo de Usuario", key: "userType", align: "start" },
+        { title: "Contacto", key: "contacto_cliente", align: "start" },
+        { title: "Documento", key: "documento", align: "start" },
+        { title: "Razón Social", key: "razon_social", align: "start" },
+        { title: "Tipo de Usuario", key: "tipo_usuario", align: "start" },
         { title: "Región", key: "region", align: "start" },
         { title: "Acciones", key: "actions", sortable: false, align: "center" },
       ],
@@ -311,6 +313,7 @@ createApp({
       try {
         if (typeof CTI !== "undefined" && CTI) {
           this.ctiData = JSON.parse(CTI);
+          this.detectInteractionChannel();
           this.populateClientData();
           return true;
         } else {
@@ -325,6 +328,59 @@ createApp({
           "danger"
         );
         return false;
+      }
+    },
+    detectInteractionChannel() {
+      if (!this.ctiData) {
+        this.interactionChannel = "";
+        return;
+      }
+
+      // Check if Channel key exists in CTI data
+      if (this.ctiData.Channel) {
+        const channelValue = this.ctiData.Channel.toLowerCase();
+
+        if (channelValue === "webchat" || channelValue.includes("chat")) {
+          this.interactionChannel = "Webchat";
+          // For webchat, Callerid contains the email
+          if (this.ctiData.Callerid) {
+            this.formData.phoneOrEmail = this.ctiData.Callerid;
+          }
+        } else if (channelValue === "sms" || channelValue.includes("sms")) {
+          this.interactionChannel = "SMS";
+          // For SMS, Callerid contains the phone number
+          if (this.ctiData.Callerid) {
+            this.formData.phoneOrEmail = this.ctiData.Callerid;
+          }
+        } else {
+          // Other channel types
+          this.interactionChannel =
+            channelValue.charAt(0).toUpperCase() + channelValue.slice(1);
+          if (this.ctiData.Callerid) {
+            this.formData.phoneOrEmail = this.ctiData.Callerid;
+          }
+        }
+      } else {
+        // No Channel key means it's a phone call
+        this.interactionChannel = "Teléfono";
+        // For phone calls, Callerid contains the phone number
+        if (this.ctiData.Callerid) {
+          this.formData.phoneOrEmail = this.ctiData.Callerid;
+        }
+      }
+
+      console.log(`Interaction channel detected: ${this.interactionChannel}`);
+    },
+    getChannelColor() {
+      switch (this.interactionChannel) {
+        case "Teléfono":
+          return "blue";
+        case "Webchat":
+          return "green";
+        case "SMS":
+          return "orange";
+        default:
+          return "grey";
       }
     },
     resetForm() {
@@ -635,11 +691,15 @@ createApp({
       const conditions = [];
 
       if (this.userSearch.phone && this.userSearch.phone.trim() !== "") {
-        conditions.push(`phone LIKE '%${this.userSearch.phone.trim()}%'`);
+        conditions.push(
+          `contacto_cliente LIKE '%${this.userSearch.phone.trim()}%'`
+        );
       }
 
       if (this.userSearch.document && this.userSearch.document.trim() !== "") {
-        conditions.push(`document LIKE '%${this.userSearch.document.trim()}%'`);
+        conditions.push(
+          `documento LIKE '%${this.userSearch.document.trim()}%'`
+        );
       }
 
       if (
@@ -667,9 +727,9 @@ createApp({
       try {
         // TODO: Replace with your actual table name and columns
         const whereClause = conditions.join(" AND ");
-        const query = `SELECT phone, document, razon_social as razonSocial, user_type as userType, region, contract_type as contractType, consult_disposition as consultDisposition, consult_details as consultDetails, atention_organ as atentionOrgan, consult_status as consultStatus, cause_detail as causeDetail FROM ccdata.users WHERE ${whereClause} LIMIT 100`;
+        const query = `SELECT * FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE ${whereClause} LIMIT 100`;
 
-        const result = await UC_get_async(query);
+        const result = await UC_get_async(query, "Repo");
         const userData = JSON.parse(result);
 
         this.userSearchResults = userData || [];
@@ -718,6 +778,113 @@ createApp({
         "fa fa-check",
         "success"
       );
+    },
+    async saveFormData() {
+      // Validate required fields
+      if (!this.formData.phoneOrEmail) {
+        notification(
+          "Advertencia",
+          "El campo Teléfono o email es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      if (!this.formData.document) {
+        notification(
+          "Advertencia",
+          "El campo Documento es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      if (!this.formData.razonSocial) {
+        notification(
+          "Advertencia",
+          "El campo Razón Social es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      this.isSaving = true;
+
+      try {
+        // Prepare the data for insertion/update
+        const data = {
+          GUID: this.ctiData.Guid || null,
+          contacto_cliente: this.formData.phoneOrEmail,
+          documento: this.formData.document,
+          razon_social: this.formData.razonSocial,
+          tipo_usuario: this.formData.userType || null,
+          region: this.formData.region || null,
+          modalidad: this.formData.contractType || null,
+          tipificacion: this.formData.consultDisposition || null,
+          detalle: this.formData.consultDetails || null,
+          acuerdo: this.formData.acuerdoMacro || null,
+          otros: this.formData.otros || null,
+          organo: this.formData.atentionOrgan || null,
+          estado: this.formData.consultStatus || null,
+          detalle_encauzado: this.formData.causeDetail || null,
+          atendido: this.agent || null,
+          observaciones: this.notes || null,
+        };
+
+        // Check if record exists (by document)
+        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE document = '${this.formData.document}'`;
+        const checkResult = await UC_get_async(checkQuery);
+        const recordExists = checkResult > 0;
+
+        let query;
+        if (recordExists) {
+          // Update existing record
+          const updateFields = [];
+          for (const [key, value] of Object.entries(data)) {
+            if (value !== null) {
+              updateFields.push(
+                `${key} = '${String(value).replace(/'/g, "''")}'`
+              );
+            }
+          }
+          query = `UPDATE ccrepo.PERUCOMPRAS_Atenciones_Llamadas SET ${updateFields.join(
+            ", "
+          )} WHERE document = '${this.formData.document}'`;
+        } else {
+          // Insert new record
+          const columns = Object.keys(data).join(", ");
+          const values = Object.values(data)
+            .map((v) =>
+              v !== null ? `'${String(v).replace(/'/g, "''")}' ` : "NULL"
+            )
+            .join(", ");
+          query = `INSERT INTO ccrepo.PERUCOMPRAS_Atenciones_Llamadas (${columns}) VALUES (${values})`;
+        }
+
+        await UC_exec_async(query, "Repo");
+
+        notification(
+          "Éxito",
+          recordExists
+            ? "Datos actualizados correctamente"
+            : "Datos guardados correctamente",
+          "fa fa-check",
+          "success"
+        );
+      } catch (error) {
+        console.error("Error saving form data:", error);
+        notification(
+          "Error",
+          "Error al guardar los datos: " + error.message,
+          "fa fa-times",
+          "danger"
+        );
+      } finally {
+        this.isSaving = false;
+      }
     },
   },
 })

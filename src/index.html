@@ -27,11 +27,11 @@
   <body>
     <div id="app">
       <v-app>
-        <v-container id="mainContainer">
+        <v-container id="mainContainer" fluid>
           <v-tabs
             v-model="activeTab"
             bg-color="light-blue-darken-4"
-            class="mb-4"
+            class="rounded-lg mb-2"
           >
             <v-tab value="form">Formulario</v-tab>
             <v-tab value="list">Búsqueda de Usuarios</v-tab>
@@ -44,6 +44,17 @@
                 <!-- Lado izquierdo -->
                 <v-col cols="6">
                   <v-card variant="elevated" class="text-white pa-4">
+                    <!-- Interaction Channel Display -->
+                    <v-chip
+                      v-if="interactionChannel"
+                      :color="getChannelColor()"
+                      class="mb-3"
+                      size="large"
+                      prepend-icon="mdi-alpha-c-circle"
+                    >
+                      <strong>Canal: {{ interactionChannel }}</strong>
+                    </v-chip>
+
                     <v-text-field
                       v-model="formData.phoneOrEmail"
                       :rules="[rules.required, rules.eleven_number_or_email]"
@@ -165,7 +176,6 @@
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
-                      readonly
                     ></v-text-field>
                   </v-card>
                   <v-card variant="elevated" class="text-white pa-4">
@@ -239,15 +249,30 @@
                     ></v-textarea>
                   </v-card>
 
-                  <v-btn
-                    block
-                    class="mt-4 finish-btn"
-                    color="primary"
-                    :loading="isFinishing"
-                    @click="finish"
-                  >
-                    Tipificar y cerrar
-                  </v-btn>
+                  <v-row class="mt-4">
+                    <v-col cols="6">
+                      <v-btn
+                        block
+                        color="success"
+                        :loading="isSaving"
+                        @click="saveFormData"
+                      >
+                        <v-icon left>mdi-content-save</v-icon>
+                        Guardar
+                      </v-btn>
+                    </v-col>
+                    <v-col cols="6">
+                      <v-btn
+                        block
+                        class="finish-btn"
+                        color="primary"
+                        :loading="isFinishing"
+                        @click="finish"
+                      >
+                        Tipificar y cerrar
+                      </v-btn>
+                    </v-col>
+                  </v-row>
                 </v-col>
               </v-row>
             </v-window-item>
@@ -307,7 +332,7 @@
                   :headers="userTableHeaders"
                   :items="userSearchResults"
                   :loading="isSearching"
-                  class="elevation-1"
+                  class="elevation-1 custom-table"
                   density="compact"
                   :items-per-page="10"
                 >
