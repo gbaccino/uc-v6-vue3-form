@@ -250,26 +250,16 @@
                   </v-card>
 
                   <v-row class="mt-4">
-                    <v-col cols="6">
+                    <v-col cols="12">
                       <v-btn
                         block
-                        color="success"
-                        :loading="isSaving"
-                        @click="saveFormData"
+                        color="primary"
+                        size="large"
+                        :loading="isProcessing"
+                        @click="saveAndFinish"
                       >
                         <v-icon left>mdi-content-save</v-icon>
-                        Guardar
-                      </v-btn>
-                    </v-col>
-                    <v-col cols="6">
-                      <v-btn
-                        block
-                        class="finish-btn"
-                        color="primary"
-                        :loading="isFinishing"
-                        @click="finish"
-                      >
-                        Tipificar y cerrar
+                        Guardar y Tipificar
                       </v-btn>
                     </v-col>
                   </v-row>

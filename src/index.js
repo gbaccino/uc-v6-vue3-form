@@ -125,6 +125,7 @@ createApp({
       dispositions: [],
       selected: ["", "", ""],
       isFinishing: false,
+      isProcessing: false,
       ctiData: {},
       campaign: {
         name: "",
@@ -143,6 +144,7 @@ createApp({
       isSaving: false, // Track if save operation is in progress
       interactionChannel: "", // Store the channel type: "Teléfono", "Webchat", or "SMS"
       activeTab: "form", // Control which tab is active
+      isLoadedFromTable: false, // Track if user was loaded from search table
       userSearch: {
         phone: "",
         document: "",
@@ -386,6 +388,25 @@ createApp({
     resetForm() {
       this.selected = ["", "", ""];
       this.dispoLevels = [[], [], []];
+      this.notes = "";
+      this.rescheduleDate = "";
+
+      // Clear all form data fields
+      this.formData = {
+        phoneOrEmail: "",
+        document: "",
+        razonSocial: "",
+        userType: "",
+        region: "",
+        contractType: "",
+        consultDisposition: "",
+        consultDetails: "",
+        acuerdoMacro: "",
+        otros: "",
+        atentionOrgan: "",
+        consultStatus: "",
+        causeDetail: "",
+      };
     },
     async transferTokenizacion() {
       if (!this.ctiData || !this.ctiData.Guid) {
@@ -757,17 +778,22 @@ createApp({
     },
     loadUserToForm(user) {
       // Load user data into the form fields
-      this.formData.phoneOrEmail = user.phone || "";
-      this.formData.document = user.document || "";
-      this.formData.razonSocial = user.razonSocial || "";
-      this.formData.userType = user.userType || "";
+      this.formData.phoneOrEmail = user.contacto_cliente || "";
+      this.formData.document = user.documento || "";
+      this.formData.razonSocial = user.razon_social || "";
+      this.formData.userType = user.tipo_usuario || "";
       this.formData.region = user.region || "";
-      this.formData.contractType = user.contractType || "";
-      this.formData.consultDisposition = user.consultDisposition || "";
-      this.formData.consultDetails = user.consultDetails || "";
-      this.formData.atentionOrgan = user.atentionOrgan || "";
-      this.formData.consultStatus = user.consultStatus || "";
-      this.formData.causeDetail = user.causeDetail || "";
+      this.formData.contractType = user.modalidad || "";
+      this.formData.consultDisposition = user.tipificacion || "";
+      this.formData.consultDetails = user.detalle || "";
+      this.formData.atentionOrgan = user.organo || "";
+      this.formData.consultStatus = user.estado || "";
+      this.formData.causeDetail = user.detalle_encauzado || "";
+      this.formData.acuerdoMacro = user.acuerdo || "";
+      this.formData.otros = user.otros || "";
+
+      // Mark as loaded from table to skip GUID/disposition validation
+      this.isLoadedFromTable = true;
 
       // Switch to form tab
       this.activeTab = "form";
@@ -884,6 +910,153 @@ createApp({
         );
       } finally {
         this.isSaving = false;
+      }
+    },
+    async saveAndFinish() {
+      // Validate form data first
+      if (!this.formData.phoneOrEmail) {
+        notification(
+          "Advertencia",
+          "El campo Teléfono o email es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      if (!this.formData.document) {
+        notification(
+          "Advertencia",
+          "El campo Documento es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      if (!this.formData.razonSocial) {
+        notification(
+          "Advertencia",
+          "El campo Razón Social es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      // Validate disposition before proceeding (skip if loaded from table)
+      if (!this.isLoadedFromTable && !this.canFinish) {
+        let reason = "";
+
+        if (!this.ctiData || !this.ctiData.Guid) {
+          reason = "No hay GUID disponible.";
+        } else if (this.dispoLevels[0].length > 0 && !this.selected[0]) {
+          reason = "Debe seleccionar una tipificación de Nivel 1.";
+        } else if (this.dispoLevels[1].length > 0 && !this.selected[1]) {
+          reason = "Debe seleccionar una tipificación de Nivel 2.";
+        } else if (this.dispoLevels[2].length > 0 && !this.selected[2]) {
+          reason = "Debe seleccionar una tipificación de Nivel 3.";
+        } else if (this.needsReschedule && !this.rescheduleDate) {
+          reason = "Debe seleccionar una fecha de reagendado.";
+        }
+
+        notification("Advertencia", reason, "fa fa-warning", "warning");
+        return;
+      }
+
+      this.isProcessing = true;
+
+      try {
+        // Step 1: Save form data
+        const data = {
+          GUID: this.ctiData.Guid || null,
+          contacto_cliente: this.formData.phoneOrEmail,
+          documento: this.formData.document,
+          razon_social: this.formData.razonSocial,
+          tipo_usuario: this.formData.userType || null,
+          region: this.formData.region || null,
+          modalidad: this.formData.contractType || null,
+          tipificacion: this.formData.consultDisposition || null,
+          detalle: this.formData.consultDetails || null,
+          acuerdo: this.formData.acuerdoMacro || null,
+          otros: this.formData.otros || null,
+          organo: this.formData.atentionOrgan || null,
+          estado: this.formData.consultStatus || null,
+          detalle_encauzado: this.formData.causeDetail || null,
+          atendido: this.agent || null,
+          observaciones: this.notes || null,
+        };
+
+        // Check if record exists (by document)
+        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE document = '${this.formData.document}'`;
+        const checkResult = await UC_get_async(checkQuery);
+        const recordExists = checkResult > 0;
+
+        let query;
+        if (recordExists) {
+          // Update existing record
+          const updateFields = [];
+          for (const [key, value] of Object.entries(data)) {
+            if (value !== null) {
+              updateFields.push(
+                `${key} = '${String(value).replace(/'/g, "''")}'`
+              );
+            }
+          }
+          query = `UPDATE ccrepo.PERUCOMPRAS_Atenciones_Llamadas SET ${updateFields.join(
+            ", "
+          )} WHERE document = '${this.formData.document}'`;
+        } else {
+          // Insert new record
+          const columns = Object.keys(data).join(", ");
+          const values = Object.values(data)
+            .map((v) =>
+              v !== null ? `'${String(v).replace(/'/g, "''")}' ` : "NULL"
+            )
+            .join(", ");
+          query = `INSERT INTO ccrepo.PERUCOMPRAS_Atenciones_Llamadas (${columns}) VALUES (${values})`;
+        }
+
+        await UC_exec_async(query, "Repo");
+
+        // Step 2: Save disposition and finish (skip if loaded from table)
+        if (!this.isLoadedFromTable) {
+          await this.saveClientDisposition();
+
+          if (this.hasCTI) {
+            UC_closeForm();
+          }
+        }
+
+        // Unblock UI after finishing
+        this.isCallActive = false;
+
+        // Clear campaign selection if no CTI
+        if (!this.hasCTI) {
+          this.campaign.name = "";
+        }
+        // Reset form but don't auto-load next client
+        this.resetForm();
+
+        // Reset the flag
+        this.isLoadedFromTable = false;
+
+        notification(
+          "Éxito",
+          "Datos guardados y cliente procesado exitosamente!",
+          "fa fa-check",
+          "success"
+        );
+      } catch (error) {
+        console.error("Error in save and finish process:", error);
+        notification(
+          "Error",
+          "Error al procesar: " + error.message,
+          "fa fa-times",
+          "danger"
+        );
+      } finally {
+        this.isProcessing = false;
       }
     },
   },
