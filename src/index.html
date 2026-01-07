@@ -45,52 +45,80 @@
                 <v-col cols="6">
                   <v-card variant="elevated" class="text-white pa-4">
                     <!-- Interaction Channel Display -->
-                    <v-chip
-                      v-if="interactionChannel"
-                      :color="getChannelColor()"
-                      class="mb-3"
-                      size="large"
-                      prepend-icon="mdi-alpha-c-circle"
-                    >
-                      <strong>Canal: {{ interactionChannel }}</strong>
-                    </v-chip>
-
                     <v-text-field
-                      v-model="formData.phoneOrEmail"
-                      :rules="[rules.required, rules.eleven_number_or_email]"
-                      placeholder="Telefono o email"
-                      label="Telefono o email"
+                      v-model="formData.date"
+                      placeholder="Fecha de atencion"
+                      label="Fecha de atencion"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      error-color="amber-darken-4"
+                      readonly
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="formData.startTime"
+                      placeholder="Hora de ingreso"
+                      label="Hora de ingreso"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      error-color="amber-darken-4"
+                      readonly
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="formData.finishTime"
+                      placeholder="Hora de salida"
+                      label="Hora de salida"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      error-color="amber-darken-4"
+                      readonly
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="formData.document"
+                      :rules="[rules.required, rules.number]"
+                      placeholder="RUC/DNI"
+                      label="RUC/DNI"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="formData.name"
+                      :rules="[rules.required]"
+                      placeholder="Nombre del usuario"
+                      label="Nombre del usuario"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-text-field>
+                    <v-text-field
+                      v-model="formData.phone"
+                      :rules="[rules.required, rules.eleven_number]"
+                      placeholder="Telefono"
+                      label="Telefono"
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
                       error-color="amber-darken-4"
                     ></v-text-field>
                     <v-text-field
-                      v-model="formData.document"
-                      :rules="[rules.required, rules.number]"
-                      placeholder="Documento"
-                      label="Documento"
+                      v-model="formData.email"
+                      :rules="[rules.required, rules.email]"
+                      placeholder="Correo electrónico"
+                      label="Correo electrónico"
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
+                      error-color="amber-darken-4"
                     ></v-text-field>
-                    <v-text-field
-                      v-model="formData.razonSocial"
-                      :rules="[rules.required, rules.text_fifty_length]"
-                      placeholder="Razon social"
-                      label="Razon social"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                    ></v-text-field>
-                    <v-select
-                      v-model="formData.userType"
-                      :items="userTypes"
-                      label="Tipo de usuario"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                    ></v-select>
+                  </v-card>
+                </v-col>
+
+                <!-- Lado derecho -->
+                <v-col cols="6">
+                  <v-card variant="elevated" class="text-white pa-4 mb-4">
                     <v-select
                       v-model="formData.region"
                       :items="regions"
@@ -100,71 +128,25 @@
                       variant="solo"
                     ></v-select>
                     <v-select
-                      v-model="formData.contractType"
+                      v-model="formData.userType"
+                      :items="userTypes"
+                      label="Tipo de usuario"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-select>
+                    <v-select
+                      v-model="formData.consultTopic"
                       :items="contractTypes"
-                      label="Modalidad de contratación"
+                      label="Tema consultado"
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
                     ></v-select>
                     <v-select
-                      v-model="formData.consultDisposition"
+                      v-model="formData.area"
                       :items="consultDispositions"
-                      label="Tipificacion de la consulta"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                    ></v-select>
-                    <v-textarea
-                      v-model="formData.consultDetails"
-                      placeholder="Detalles de la consulta"
-                      label="Detalles de la consulta"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                    ></v-textarea>
-                    <v-text-field
-                      v-model="formData.acuerdoMacro"
-                      placeholder="Tipo de acuerdo macro"
-                      label="Tipo de acuerdo macro"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                    ></v-text-field>
-                    <v-textarea
-                      v-model="formData.otros"
-                      placeholder="Otros"
-                      label="Otros"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                    ></v-textarea>
-                  </v-card>
-                </v-col>
-
-                <!-- Lado derecho -->
-                <v-col cols="6">
-                  <v-card variant="elevated" class="text-white pa-4 mb-4">
-                    <v-select
-                      v-model="formData.atentionOrgan"
-                      :items="atentionOrgans"
-                      label="Órgano de atención"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                    ></v-select>
-                    <v-select
-                      v-model="formData.consultStatus"
-                      :items="consultStatus"
-                      label="Estado de consulta"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                    ></v-select>
-                    <v-select
-                      v-model="formData.causeDetail"
-                      :items="causeDetails"
-                      label="Detalles del encauzado"
+                      label="Área"
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
@@ -177,6 +159,14 @@
                       bg-color="light-blue-darken-4"
                       variant="solo"
                     ></v-text-field>
+                    <v-textarea
+                      v-model="formData.rating"
+                      placeholder="Valoración del servicio"
+                      label="Valoración del servicio"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-textarea>
                   </v-card>
                   <v-card variant="elevated" class="text-white pa-4">
                     <h4 class="mb-4">Tipificaciones</h4>
@@ -259,7 +249,7 @@
                         @click="saveAndFinish"
                       >
                         <v-icon left>mdi-content-save</v-icon>
-                        Guardar y Tipificar
+                        Guardar y cerrar
                       </v-btn>
                     </v-col>
                   </v-row>
@@ -297,7 +287,7 @@
                   </v-col>
                   <v-col cols="12" md="4">
                     <v-text-field
-                      v-model="userSearch.razonSocial"
+                      v-model="userSearch.name"
                       label="Razón Social"
                       density="compact"
                       bg-color="light-blue-darken-4"
@@ -350,7 +340,6 @@
         </v-container>
       </v-app>
     </div>
-
     <script src="index.js"></script>
   </body>
 </html>
