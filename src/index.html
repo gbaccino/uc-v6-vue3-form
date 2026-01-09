@@ -65,15 +65,15 @@
                       variant="solo"
                       error-color="amber-darken-4"
                     ></v-text-field>
-                    <v-text-field
+                    <v-select
                       v-model="formData.document"
-                      :rules="[rules.required, rules.number]"
-                      placeholder="Documento"
-                      label="Documento"
+                      :rules="[rules.required]"
+                      :items="documentTypes"
+                      label="Tipo de documento"
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
-                    ></v-text-field>
+                    ></v-select>
                     <v-text-field
                       v-model="formData.razonSocial"
                       :rules="[rules.required, rules.text_fifty_length]"
@@ -123,14 +123,14 @@
                       bg-color="light-blue-darken-4"
                       variant="solo"
                     ></v-textarea>
-                    <v-text-field
-                      v-model="formData.acuerdoMacro"
-                      placeholder="Tipo de acuerdo macro"
-                      label="Tipo de acuerdo macro"
+                    <v-select
+                      v-model="formData.acuerdoMarco"
+                      :items="acuerdosMarco"
+                      label="Tipo de acuerdo marco"
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
-                    ></v-text-field>
+                    ></v-select>
                     <v-textarea
                       v-model="formData.otros"
                       placeholder="Otros"
@@ -146,14 +146,6 @@
                 <v-col cols="6">
                   <v-card variant="elevated" class="text-white pa-4 mb-4">
                     <v-select
-                      v-model="formData.atentionOrgan"
-                      :items="atentionOrgans"
-                      label="Órgano de atención"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                    ></v-select>
-                    <v-select
                       v-model="formData.consultStatus"
                       :items="consultStatus"
                       label="Estado de consulta"
@@ -162,6 +154,25 @@
                       variant="solo"
                     ></v-select>
                     <v-select
+                      v-if="formData.consultStatus === 'Encauzado'"
+                      v-model="formData.atentionOrgan"
+                      :items="atentionOrgans"
+                      label="Órgano de atención de encauzamiento"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-select>
+                    <v-select
+                      v-if="formData.consultStatus === 'Encauzado'"
+                      v-model="formData.encauzadoEmail"
+                      :items="encauzadoEmails"
+                      label="Email a derivar"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-select>
+                    <v-select
+                      v-if="formData.consultStatus === 'Encauzado'"
                       v-model="formData.causeDetail"
                       :items="causeDetails"
                       label="Detalles del encauzado"
@@ -170,6 +181,24 @@
                       variant="solo"
                     ></v-select>
                     <v-text-field
+                      v-if="formData.consultStatus === 'Encauzado'"
+                      v-model="formData.encauzadoDate"
+                      placeholder="Fecha de atención"
+                      label="Fecha de atención"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-text-field>
+                    <v-text-field
+                      v-if="formData.consultStatus === 'Encauzado'"
+                      v-model="formData.encauzadoDays"
+                      placeholder="Días de atención en órgano"
+                      label="Días de atención en órgano"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                    ></v-text-field>
+                    <v-text-field
                       v-model="agent"
                       placeholder="Atendido por"
                       label="Atendido por"
@@ -177,78 +206,14 @@
                       bg-color="light-blue-darken-4"
                       variant="solo"
                     ></v-text-field>
-                  </v-card>
-                  <v-card variant="elevated" class="text-white pa-4">
-                    <h4 class="mb-4">Tipificaciones</h4>
-
-                    <!-- Campaign selector - always show, disable when CTI present or call active -->
-                    <v-autocomplete
-                      v-model="campaign.name"
-                      :items="availableCampaigns"
-                      label="Campaña"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                      class="mb-3"
-                      :disabled="hasCTI || isCallActive"
-                      :readonly="hasCTI || isCallActive"
-                      @update:model-value="onCampaignSelected"
-                    ></v-autocomplete>
-
-                    <v-autocomplete
-                      v-if="dispoLevels[0] && dispoLevels[0].length > 0"
-                      v-model="selected[0]"
-                      :items="dispoLevels[0]"
-                      label="Nivel 1"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                      @update:model-value="loadNext(0)"
-                    ></v-autocomplete>
-
-                    <v-autocomplete
-                      v-if="selected[0] && dispoLevels[1] && dispoLevels[1].length > 0"
-                      v-model="selected[1]"
-                      :items="dispoLevels[1]"
-                      label="Nivel 2"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                      @update:model-value="loadNext(1)"
-                    ></v-autocomplete>
-
-                    <v-autocomplete
-                      v-if="selected[1] && dispoLevels[2] && dispoLevels[2].length > 0"
-                      v-model="selected[2]"
-                      :items="dispoLevels[2]"
-                      label="Nivel 3"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                    ></v-autocomplete>
-
-                    <v-text-field
-                      v-if="needsReschedule"
-                      v-model="rescheduleDate"
-                      label="Fecha de reagendado"
-                      type="datetime-local"
-                      :min="minDateTime"
-                      density="compact"
-                      bg-color="light-blue-darken-4"
-                      variant="solo"
-                      class="datetime-picker-field"
-                      @change="rescheduleDate = formatRescheduleDate($event.target.value)"
-                    ></v-text-field>
-
                     <v-textarea
                       v-model="notes"
-                      label="Notas"
+                      label="Observaciones"
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
                     ></v-textarea>
                   </v-card>
-
                   <v-row class="mt-4">
                     <v-col cols="12">
                       <v-btn
@@ -259,7 +224,7 @@
                         @click="saveAndFinish"
                       >
                         <v-icon left>mdi-content-save</v-icon>
-                        Guardar y Tipificar
+                        Guardar
                       </v-btn>
                     </v-col>
                   </v-row>

@@ -65,20 +65,110 @@ createApp({
         "Otros",
       ],
       consultDispositions: [
-        "Acceso al sistema",
-        "Acreditación de marca",
-        "Actos preparatorios",
-        "Actualización de datos",
-        "Anexo 2 proforma",
-        "Anexo 3 orden de compra",
-        "Antisoborno",
-        "Atención de visitas",
-        "Boletos aéreos",
-        "Canales de atención",
-        "Capacitación",
-        "Catálogo electrónico",
-        "Certificado presupuestal",
-        "Cesión de derechos",
+        "Acceso al Sistema",
+
+        "Acceso a la Informacion Publica",
+        "Acreditacion de Marca",
+        "Actuaciones Preparatorias",
+        "Actualizacion de datos",
+        "Actualizacion de Recaudo",
+        "Ampliacion de Plazo de Entrega",
+        "Ampliacion de Publicacion de OCAM",
+        "Anexo 2 Proforma",
+        "Anexo 3 Orden de Compra",
+        "Bandeja de notificaciones",
+        "Boletos Aereos",
+        "Busqueda de fichas producto",
+        "Canales de Atencion",
+        "Capacitacion",
+        "Carta de Originalidad",
+        "Carta de Presentacion",
+        "Catalogo Electronico",
+        "Certificacion Presupuestal",
+        "Cesion de Derechos",
+        "Clasificadores",
+        "Codigo CIIU",
+        "Competencias de Peru Compras",
+        "Compra Agregada",
+        "Compra asistida",
+        "Compra Individual",
+        "Compra Ordinaria",
+        "Compra por Paquete",
+        "Compra por Encargo",
+        "Compras Corporativas",
+        "Comunicados",
+        "Constancia",
+        "Consultas generales / Solicitud de Informacion",
+        "Convocatoria de Personal CAS",
+        "Convocatorias",
+        "Compras financiadas por el BID",
+        "Correspondencia / Notificaciones",
+        "Cotizaciones",
+        "Creacion de Valores",
+        "Datos de Representante de Marca",
+        "Denuncia",
+        "Deposito de Garantia de Fiel Cumplimiento",
+        "Devolucion de Garantia de Fiel Cumplimiento",
+        "Difusion DCEME",
+        "Directivas",
+        "Directorio Institucional",
+        "Ejecucion Contractual",
+        "Entrega de Bienes",
+        "Estado de Orden de Compra",
+        "Estimador de precios",
+        "Evaluacion y Subsanacion de Fichas Producto",
+        "Exceptuacion de Compra por Catalogo Electronico",
+        "Exclusion e Inclusion de Proveedores",
+        "Expediente de Contratacion",
+        "Fichas Producto",
+        "Gran Compra",
+        "Homologacion",
+        "ID Certificacion",
+        "Incidencia",
+        "Incorporacion de nuevos productos",
+        "Incumplimiento de Pago",
+        "Inscripcion Proveedor",
+        "Ley y Reglamento de Contrataciones Publicas",
+        "Liberacion de Certificado Presupuestal",
+        "Listado de Bienes y Servicios comunes",
+        "Manual de Operatividad",
+        "Mejora de Ofertas",
+        "Mesa de Partes",
+        "Modificacion de reserva del CCP",
+        "Monto minimo de atencion",
+        "Montos minimos de Contratacion",
+        "Multiusuarios",
+        "Notificacion de Transparencia",
+        "Obligatoriedad de Contratar por Catalogo Electronico",
+        "Ofertas no Adjudicadas",
+        "Operatividad del Catalogo Electronico",
+        "Orden de Compra",
+        "Pladicop",
+        "Plazos de Entrega",
+        "Presentacion de Ofertas",
+        "Prevision presupuestal",
+        "Productos falsificados",
+        "Proforma",
+        "Reclamo",
+        "Recurso Impugnatorio",
+        "Rechazo de OCAM",
+        "Registro de nuevos Proveedores",
+        "Reglas de Operatividad",
+        "Requerimiento",
+        "Resolucion de Orden de Compra",
+        "Resultado de Proveedores",
+        "Sancion TCP",
+        "Seguimiento de Tramite / Correo",
+        "Semaforo",
+        "Solicitud de Capacitacion",
+        "Solicitud de reunion",
+        "Subasta Inversa Electronica",
+        "Tipo de Cambio",
+        "Tipo de Contratacion",
+        "Tipo de Entrega",
+        "Transparencia",
+        "Uso de imagen Institucional",
+        "Vigencia del Acuerdo Marco",
       ],
       atentionOrgans: [
         "Jefatura",
@@ -93,37 +183,49 @@ createApp({
         "Dirección de Estrategias Técnicas y Normativas",
         "Dirección de Compras Electrónicas y Modalidades Eficientes",
         "Dirección de Estandarización",
+        "Otro",
       ],
-      consultStatus: ["Atendido", "Pendiente", "Encausado"],
+      consultStatus: ["Atendido", "Pendiente", "Encauzado"],
       causeDetails: [
         "Reclamo",
         "Incidente",
         "Denuncia",
         "Acceso a la información",
         "Consulta técnica",
+        "Otro",
       ],
-      clientData: {
-        nombre_del_cliente: "",
-        fecha_de_nacimiento: "",
-        rfc: "",
-        no_tarjeta_crd: "",
-        direccion: "",
-        email: "",
-        telefono_casa: "",
-        telefono_oficina: "",
-        telefono_celular: "",
-        tenure: "",
-        numero_de_supp_activas: "",
-        card_product: "",
-        ingresos: "",
-        id_cliente: "",
-        id_base: "",
-        id_lote: "",
-        nombre_del_lote: "",
-      },
-      dispoLevels: [[], [], []],
-      dispositions: [],
-      selected: ["", "", ""],
+      acuerdosMarco: [
+        "EXT-CE-2024-1 Baterías, pilas y accesorios",
+        "EXT-CE-2024-2 Equipos multimedia y accesorios",
+        "EXT-CE-2024-3 Materiales e insumos de limpieza y papeles para aseo y limpieza",
+        "EXT-CE-2022-5 Computadoras de escritorio, portátiles y escánere",
+        "EXT-CE-2021-6 Impresoras; consumibles; repuestos y accesorios de oficina",
+        "EXT-CE-2021-7 Útiles de escritorio, papeles y cartones",
+        "EXT-CE-2024-10 Llantas, neumáticos y accesorios",
+        "EXT-CE-2024-12 Pinturas, cerámicos, pisos, tuberías, sanitarios, accesorios y complementos",
+        "EXT-CE-2024-13 Equipos de aire acondicionado, similares y accesorios",
+        "EXT-CE-2024-14 Luminarias, materiales y cables eléctricos",
+        "IM-CE-2020-15 Servicio de emisión de boletos aéreos",
+        "EXT-CE-2024-16 Accesorios domésticos y bienes para usos diversos",
+        "EXT-CE-2024-17 Bebidas no alcohólicas",
+        "EXT-CE-2024-18 Cereales, aceite, azúcares y menestras",
+        "EXT-CE-2024-26 Máquinas y equipos, y herramientas para jardinería, silvicultura y agricultura",
+        "EXT-CE-2024-28 Calzado y botas",
+        "No aplica",
+      ],
+      documentTypes: ["RUC", "DNI", "C.E.", "Otros"],
+      encauzadoEmails: [
+        "acuerdosmarco@perucompras.gob.pe",
+        "administrador.acuerdos@perucompras.gob.pe",
+        "estandarizacion@perucompras.gob.pe",
+        "comprascorporativas@perucompras.gob.pe",
+        "comunicaciones@perucompras.gob.pe",
+        "transparencia@perucompras.gob.pe",
+        "mesadepartes@perucompras.gob.pe",
+        "reclamaciones@perucompras.gob.pe",
+        "correspondencia@perucompras.gob.pe",
+        "consultasconvocatorias@perucompras.gob.pe",
+      ],
       isFinishing: false,
       isProcessing: false,
       ctiData: {},
@@ -140,7 +242,6 @@ createApp({
       numberSelectionResolve: null, // Promise resolver for modal
       isCallActive: false, // Track if a call is currently active
       notes: "", // Store notes for the client
-      rescheduleDate: "", // Store reschedule date in YYYY-MM-DD HH:mm:ss format
       isSaving: false, // Track if save operation is in progress
       interactionChannel: "", // Store the channel type: "Teléfono", "Webchat", or "SMS"
       activeTab: "form", // Control which tab is active
@@ -169,77 +270,29 @@ createApp({
         contractType: "",
         consultDisposition: "",
         consultDetails: "",
-        acuerdoMacro: "",
+        acuerdoMarco: "",
         otros: "",
         atentionOrgan: "",
         consultStatus: "",
+        encauzadoEmail: "",
         causeDetail: "",
+        encauzadoDate: new Date().toISOString().split("T")[0],
+        encauzadoDays: "",
       },
     };
   },
   mounted() {
     this.initializeForm();
   },
-  computed: {
-    leftKeys() {
-      const keys = Object.keys(this.clientData || {});
-      const half = Math.ceil(keys.length / 2);
-      return keys.slice(0, half);
-    },
-    rightKeys() {
-      const keys = Object.keys(this.clientData || {});
-      const half = Math.ceil(keys.length / 2);
-      return keys.slice(half);
-    },
-    needsReschedule() {
-      if (!this.selected[0]) return false;
-
-      // Find disposition that matches the selected values
-      const matchingDispos = this.dispositions.filter((d) => {
-        if (this.selected[2]) {
-          // All three levels selected
-          return (
-            d.value1 === this.selected[0] &&
-            d.value2 === this.selected[1] &&
-            d.value3 === this.selected[2]
-          );
-        } else if (this.selected[1]) {
-          // Two levels selected
-          return d.value1 === this.selected[0] && d.value2 === this.selected[1];
-        } else {
-          // Only first level selected
-          return d.value1 === this.selected[0];
-        }
-      });
-
-      return matchingDispos.some((d) => d.action === "RESCHEDULE");
-    },
-    minDateTime() {
-      // Get current datetime in format YYYY-MM-DDTHH:mm for datetime-local input
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const day = String(now.getDate()).padStart(2, "0");
-      const hours = String(now.getHours()).padStart(2, "0");
-      const minutes = String(now.getMinutes()).padStart(2, "0");
-      return `${year}-${month}-${day}T${hours}:${minutes}`;
-    },
-    canFinish() {
-      // Check if GUID exists
-      if (!this.ctiData || !this.ctiData.Guid) return false;
-
-      // Check if all available disposition levels are selected
-      if (this.dispoLevels[0].length > 0 && !this.selected[0]) return false;
-      if (this.dispoLevels[1].length > 0 && !this.selected[1]) return false;
-      if (this.dispoLevels[2].length > 0 && !this.selected[2]) return false;
-
-      // If reschedule is needed, date must be selected
-      if (this.needsReschedule && !this.rescheduleDate) return false;
-
-      return true;
-    },
-  },
+  computed: {},
   methods: {
+    getTodayDate() {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      return `${day}/${month}/${year}`;
+    },
     async initializeForm() {
       this.setAgent();
 
@@ -264,8 +317,6 @@ createApp({
           phone: this.ctiData.Callerid,
           user_id: this.agent,
           start_date: formatted,
-          base_id: this.clientData.id_base,
-          client_id: this.clientData.id_cliente,
         };
         try {
           this.makeRequest(endpoint, options);
@@ -299,24 +350,12 @@ createApp({
       const s = String(key).replace(/_/g, " ");
       return s.charAt(0).toUpperCase() + s.slice(1);
     },
-    formatRescheduleDate(dateTimeLocal) {
-      // Convert from datetime-local format (YYYY-MM-DDTHH:mm) to YYYY-MM-DD HH:mm:ss
-      if (!dateTimeLocal) return "";
-      const date = new Date(dateTimeLocal);
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, "0");
-      const day = String(date.getDate()).padStart(2, "0");
-      const hours = String(date.getHours()).padStart(2, "0");
-      const minutes = String(date.getMinutes()).padStart(2, "0");
-      const seconds = "00";
-      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
-    },
+
     async initializeCTI() {
       try {
         if (typeof CTI !== "undefined" && CTI) {
           this.ctiData = JSON.parse(CTI);
           this.detectInteractionChannel();
-          this.populateClientData();
           return true;
         } else {
           return false;
@@ -386,10 +425,7 @@ createApp({
       }
     },
     resetForm() {
-      this.selected = ["", "", ""];
-      this.dispoLevels = [[], [], []];
       this.notes = "";
-      this.rescheduleDate = "";
 
       // Clear all form data fields
       this.formData = {
@@ -401,11 +437,14 @@ createApp({
         contractType: "",
         consultDisposition: "",
         consultDetails: "",
-        acuerdoMacro: "",
+        acuerdoMarco: "",
         otros: "",
         atentionOrgan: "",
         consultStatus: "",
+        encauzadoEmail: "",
         causeDetail: "",
+        encauzadoDate: new Date().toISOString().split("T")[0],
+        encauzadoDays: "",
       };
     },
     async transferTokenizacion() {
@@ -470,193 +509,6 @@ createApp({
       if (this.campaign.name) {
         // Reset form when campaign changes
         this.resetForm();
-
-        // Load dispositions for selected campaign
-        await this.loadDispositionOptions();
-      }
-    },
-    populateClientData() {
-      if (this.ctiData) {
-        if (this.ctiData.Campaign) {
-          this.campaign.name = this.ctiData.Campaign;
-
-          // Ensure CTI campaign is in the `available campaigns list
-          if (!this.availableCampaigns.includes(this.campaign.name)) {
-            this.availableCampaigns.push(this.campaign.name);
-          }
-        }
-
-        if (this.ctiData.Callerid) {
-          this.clientData.Phone = this.ctiData.Callerid;
-        }
-
-        if (this.ctiData.Guid) {
-          this.clientData.Guid = this.ctiData.Guid;
-        }
-
-        if (this.ctiData.ParAndValues && this.ctiData.ParAndValues !== "") {
-          try {
-            const pairs = this.ctiData.ParAndValues.split(":");
-
-            pairs.forEach((pair) => {
-              const trimmedPair = pair.trim();
-              if (trimmedPair) {
-                const equalIndex = trimmedPair.indexOf("=");
-                if (equalIndex !== -1) {
-                  const key = trimmedPair.substring(0, equalIndex).trim();
-                  const value = trimmedPair.substring(equalIndex + 1).trim();
-
-                  if (key && value) {
-                    this.clientData[key] = value;
-                  }
-                }
-              }
-            });
-          } catch (e) {
-            console.error("Error parsing ParAndValues:", e);
-          }
-        }
-
-        if (this.campaign.name) {
-          this.loadDispositionOptions();
-        }
-      }
-    },
-    async loadDispositionOptions() {
-      try {
-        const query = `SELECT * FROM ccdata.dispositions WHERE campaign = '${this.campaign.name}'`;
-        const result = await UC_get_async(query);
-        this.dispositions = JSON.parse(result);
-
-        const uniqueLevel1 = [
-          ...new Set(this.dispositions.map((d) => d.value1)),
-        ];
-        this.dispoLevels[0] = uniqueLevel1.filter((v) => v && v.trim() !== "");
-      } catch (error) {
-        console.error("Error loading dispositions:", error);
-      }
-    },
-    loadNext(level) {
-      if (level === 0) {
-        this.selected[1] = "";
-        this.selected[2] = "";
-
-        const level2Options = this.dispositions
-          .filter((d) => d.value1 === this.selected[0])
-          .map((d) => d.value2)
-          .filter((v) => v && v.trim() !== "");
-
-        this.dispoLevels[1] = [...new Set(level2Options)];
-
-        this.dispoLevels[2] = [];
-      }
-
-      if (level === 1) {
-        this.selected[2] = "";
-
-        const level3Options = this.dispositions
-          .filter(
-            (d) =>
-              d.value1 === this.selected[0] && d.value2 === this.selected[1]
-          )
-          .map((d) => d.value3)
-          .filter((v) => v && v.trim() !== "");
-
-        this.dispoLevels[2] = [...new Set(level3Options)];
-      }
-    },
-    async finish() {
-      // Validate before proceeding
-      if (!this.canFinish) {
-        let reason = "";
-
-        if (!this.ctiData || !this.ctiData.Guid) {
-          reason = "No hay GUID disponible.";
-        } else if (this.dispoLevels[0].length > 0 && !this.selected[0]) {
-          reason = "Debe seleccionar una tipificación de Nivel 1.";
-        } else if (this.dispoLevels[1].length > 0 && !this.selected[1]) {
-          reason = "Debe seleccionar una tipificación de Nivel 2.";
-        } else if (this.dispoLevels[2].length > 0 && !this.selected[2]) {
-          reason = "Debe seleccionar una tipificación de Nivel 3.";
-        } else if (this.needsReschedule && !this.rescheduleDate) {
-          reason = "Debe seleccionar una fecha de reagendado.";
-        }
-
-        notification("Advertencia", reason, "fa fa-warning", "warning");
-        return;
-      }
-
-      this.isFinishing = true;
-
-      try {
-        await this.saveClientDisposition();
-
-        if (this.hasCTI) {
-          UC_closeForm();
-        }
-
-        // Unblock UI after finishing
-        this.isCallActive = false;
-
-        // Clear campaign selection if no CTI
-        if (!this.hasCTI) {
-          this.campaign.name = "";
-        }
-        // Reset form but don't auto-load next client
-        this.resetForm();
-
-        notification(
-          "Success",
-          "Cliente procesado exitosamente!",
-          "fa fa-check",
-          "success"
-        );
-      } catch (error) {
-        console.error("Error in finish process:", error);
-        notification(
-          "Error",
-          "Error saving data: " + error.message,
-          "fa fa-times",
-          "danger"
-        );
-      } finally {
-        this.isFinishing = false;
-      }
-    },
-    async saveClientDisposition() {
-      try {
-        if (this.needsReschedule && this.rescheduleDate) {
-          // Call with reschedule parameters
-          await UC_DispositionCall_async(
-            this.campaign.name,
-            this.clientData.Phone,
-            this.ctiData.Guid,
-            this.selected[0],
-            this.selected[1],
-            this.selected[2],
-            this.agent || "",
-            this.clientData.nombre_del_cliente || "",
-            this.notes,
-            this.rescheduleDate,
-            null
-          );
-        } else {
-          // Normal call without reschedule parameters
-          await UC_DispositionCall_async(
-            this.campaign.name,
-            this.clientData.Phone,
-            this.ctiData.Guid,
-            this.selected[0],
-            this.selected[1],
-            this.selected[2],
-            this.agent || "",
-            this.clientData.nombre_del_cliente || "",
-            this.notes
-          );
-        }
-      } catch (error) {
-        console.error("Error saving client disposition:", error);
-        throw error;
       }
     },
     pausarAgente() {
@@ -788,8 +640,11 @@ createApp({
       this.formData.consultDetails = user.detalle || "";
       this.formData.atentionOrgan = user.organo || "";
       this.formData.consultStatus = user.estado || "";
+      this.formData.encauzadoEmail = user.email_encauzado || "";
       this.formData.causeDetail = user.detalle_encauzado || "";
-      this.formData.acuerdoMacro = user.acuerdo || "";
+      this.formData.encauzadoDate = user.fecha_encauzado || "";
+      this.formData.encauzadoDays = user.dias_atencion || "";
+      this.formData.acuerdoMarco = user.acuerdo || "";
       this.formData.otros = user.otros || "";
 
       // Mark as loaded from table to skip GUID/disposition validation
@@ -851,11 +706,14 @@ createApp({
           modalidad: this.formData.contractType || null,
           tipificacion: this.formData.consultDisposition || null,
           detalle: this.formData.consultDetails || null,
-          acuerdo: this.formData.acuerdoMacro || null,
+          acuerdo: this.formData.acuerdoMarco || null,
           otros: this.formData.otros || null,
           organo: this.formData.atentionOrgan || null,
           estado: this.formData.consultStatus || null,
+          email_encauzado: this.formData.encauzadoEmail || null,
           detalle_encauzado: this.formData.causeDetail || null,
+          fecha_encauzado: this.formData.encauzadoDate || null,
+          dias_atencion: this.formData.encauzadoDays || null,
           atendido: this.agent || null,
           observaciones: this.notes || null,
         };
@@ -978,11 +836,14 @@ createApp({
           modalidad: this.formData.contractType || null,
           tipificacion: this.formData.consultDisposition || null,
           detalle: this.formData.consultDetails || null,
-          acuerdo: this.formData.acuerdoMacro || null,
+          acuerdo: this.formData.acuerdoMarco || null,
           otros: this.formData.otros || null,
           organo: this.formData.atentionOrgan || null,
           estado: this.formData.consultStatus || null,
+          email_encauzado: this.formData.encauzadoEmail || null,
           detalle_encauzado: this.formData.causeDetail || null,
+          fecha_encauzado: this.formData.encauzadoDate || null,
+          dias_atencion: this.formData.encauzadoDays || null,
           atendido: this.agent || null,
           observaciones: this.notes || null,
         };
