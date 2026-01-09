@@ -264,6 +264,7 @@ createApp({
       formData: {
         phoneOrEmail: "",
         document: "",
+        documentNumber: "",
         razonSocial: "",
         userType: "",
         region: "",
@@ -431,6 +432,7 @@ createApp({
       this.formData = {
         phoneOrEmail: "",
         document: "",
+        documentNumber: "",
         razonSocial: "",
         userType: "",
         region: "",
@@ -571,7 +573,7 @@ createApp({
 
       if (this.userSearch.document && this.userSearch.document.trim() !== "") {
         conditions.push(
-          `documento LIKE '%${this.userSearch.document.trim()}%'`
+          `numero_documento LIKE '%${this.userSearch.document.trim()}%'`
         );
       }
 
@@ -631,7 +633,8 @@ createApp({
     loadUserToForm(user) {
       // Load user data into the form fields
       this.formData.phoneOrEmail = user.contacto_cliente || "";
-      this.formData.document = user.documento || "";
+      this.formData.document = user.tipo_documento || "";
+      this.formData.documentNumber = user.numero_documento || "";
       this.formData.razonSocial = user.razon_social || "";
       this.formData.userType = user.tipo_usuario || "";
       this.formData.region = user.region || "";
@@ -672,10 +675,10 @@ createApp({
         return;
       }
 
-      if (!this.formData.document) {
+      if (!this.formData.documentNumber) {
         notification(
           "Advertencia",
-          "El campo Documento es requerido",
+          "El campo Número de documento es requerido",
           "fa fa-warning",
           "warning"
         );
@@ -699,7 +702,8 @@ createApp({
         const data = {
           GUID: this.ctiData.Guid || null,
           contacto_cliente: this.formData.phoneOrEmail,
-          documento: this.formData.document,
+          tipo_documento: this.formData.document,
+          numero_documento: this.formData.documentNumber,
           razon_social: this.formData.razonSocial,
           tipo_usuario: this.formData.userType || null,
           region: this.formData.region || null,
@@ -718,9 +722,9 @@ createApp({
           observaciones: this.notes || null,
         };
 
-        // Check if record exists (by document)
-        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE document = '${this.formData.document}'`;
-        const checkResult = await UC_get_async(checkQuery);
+        // Check if record exists (by document number)
+        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE numero_documento = '${this.formData.documentNumber}'`;
+        const checkResult = await UC_get_async(checkQuery, "Repo");
         const recordExists = checkResult > 0;
 
         let query;
@@ -736,7 +740,7 @@ createApp({
           }
           query = `UPDATE ccrepo.PERUCOMPRAS_Atenciones_Llamadas SET ${updateFields.join(
             ", "
-          )} WHERE document = '${this.formData.document}'`;
+          )} WHERE numero_documento = '${this.formData.documentNumber}'`;
         } else {
           // Insert new record
           const columns = Object.keys(data).join(", ");
@@ -782,10 +786,10 @@ createApp({
         return;
       }
 
-      if (!this.formData.document) {
+      if (!this.formData.documentNumber) {
         notification(
           "Advertencia",
-          "El campo Documento es requerido",
+          "El campo Número de documento es requerido",
           "fa fa-warning",
           "warning"
         );
@@ -829,7 +833,8 @@ createApp({
         const data = {
           GUID: this.ctiData.Guid || null,
           contacto_cliente: this.formData.phoneOrEmail,
-          documento: this.formData.document,
+          tipo_documento: this.formData.document,
+          numero_documento: this.formData.documentNumber,
           razon_social: this.formData.razonSocial,
           tipo_usuario: this.formData.userType || null,
           region: this.formData.region || null,
@@ -848,9 +853,9 @@ createApp({
           observaciones: this.notes || null,
         };
 
-        // Check if record exists (by document)
-        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE document = '${this.formData.document}'`;
-        const checkResult = await UC_get_async(checkQuery);
+        // Check if record exists (by document number)
+        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE numero_documento = '${this.formData.documentNumber}'`;
+        const checkResult = await UC_get_async(checkQuery, "Repo");
         const recordExists = checkResult > 0;
 
         let query;
@@ -866,7 +871,7 @@ createApp({
           }
           query = `UPDATE ccrepo.PERUCOMPRAS_Atenciones_Llamadas SET ${updateFields.join(
             ", "
-          )} WHERE document = '${this.formData.document}'`;
+          )} WHERE numero_documento = '${this.formData.documentNumber}'`;
         } else {
           // Insert new record
           const columns = Object.keys(data).join(", ");

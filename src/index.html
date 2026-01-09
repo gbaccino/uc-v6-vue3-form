@@ -250,15 +250,16 @@
                     ></v-text-field>
                   </v-col>
                   <v-col cols="12" md="4">
-                    <v-text-field
+                    <v-select
                       v-model="userSearch.document"
-                      label="Documento"
+                      :items="documentTypes"
+                      label="Tipo de documento"
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
                       clearable
                       @update:model-value="searchUsers"
-                    ></v-text-field>
+                    ></v-select>
                   </v-col>
                   <v-col cols="12" md="4">
                     <v-text-field
