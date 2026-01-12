@@ -99,25 +99,6 @@ createApp({
         "Acceso a la información",
         "Consulta técnica",
       ],
-      clientData: {
-        nombre_del_cliente: "",
-        fecha_de_nacimiento: "",
-        rfc: "",
-        no_tarjeta_crd: "",
-        direccion: "",
-        email: "",
-        telefono_casa: "",
-        telefono_oficina: "",
-        telefono_celular: "",
-        tenure: "",
-        numero_de_supp_activas: "",
-        card_product: "",
-        ingresos: "",
-        id_cliente: "",
-        id_base: "",
-        id_lote: "",
-        nombre_del_lote: "",
-      },
       isProcessing: false,
       agent: "", // Store agent account code
       isSaving: false, // Track if save operation is in progress
@@ -158,18 +139,6 @@ createApp({
   mounted() {
     this.initializeForm();
   },
-  computed: {
-    leftKeys() {
-      const keys = Object.keys(this.clientData || {});
-      const half = Math.ceil(keys.length / 2);
-      return keys.slice(0, half);
-    },
-    rightKeys() {
-      const keys = Object.keys(this.clientData || {});
-      const half = Math.ceil(keys.length / 2);
-      return keys.slice(half);
-    },
-  },
   methods: {
     async initializeForm() {
       // Set current date and time
@@ -199,11 +168,6 @@ createApp({
         console.error("Error getting agent account code:", error);
         this.agent = "No agent";
       }
-    },
-    formatLabel(key) {
-      if (key === null || key === undefined) return "";
-      const s = String(key).replace(/_/g, " ");
-      return s.charAt(0).toUpperCase() + s.slice(1);
     },
 
     resetForm() {
