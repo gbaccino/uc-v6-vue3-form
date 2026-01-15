@@ -226,23 +226,11 @@ createApp({
         "correspondencia@perucompras.gob.pe",
         "consultasconvocatorias@perucompras.gob.pe",
       ],
-      isFinishing: false,
       isProcessing: false,
       ctiData: {},
-      campaign: {
-        name: "",
-        numbers: [],
-      },
       hasCTI: false,
       agent: "", // Store agent account code
-      availableCampaigns: [], // Store available campaigns for manual selection
-      showNumberModal: false, // Control number selection modal
-      numberOptions: [], // Store numbers for selection
-      selectedNumber: null, // Store selected number
-      numberSelectionResolve: null, // Promise resolver for modal
-      isCallActive: false, // Track if a call is currently active
       notes: "", // Store notes for the client
-      isSaving: false, // Track if save operation is in progress
       interactionChannel: "", // Store the channel type: "Teléfono", "Webchat", or "SMS"
       activeTab: "form", // Control which tab is active
       isLoadedFromTable: false, // Track if user was loaded from search table
@@ -264,7 +252,6 @@ createApp({
       formData: {
         phoneOrEmail: "",
         document: "",
-        documentNumber: "",
         razonSocial: "",
         userType: "",
         region: "",
@@ -297,39 +284,8 @@ createApp({
     async initializeForm() {
       this.setAgent();
 
-      await this.loadAvailableCampaigns();
-
       if (await this.initializeCTI()) {
         this.hasCTI = true;
-
-        const formatted = new Intl.DateTimeFormat("en-GB", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: false,
-        })
-          .format(new Date())
-          .replace(",", "");
-        const endpoint = api_url + "/AMEX_API_ENTRANTE";
-        const options = {
-          guid: this.ctiData.Guid,
-          phone: this.ctiData.Callerid,
-          user_id: this.agent,
-          start_date: formatted,
-        };
-        try {
-          this.makeRequest(endpoint, options);
-        } catch (error) {
-          console.error("Error making request:", error);
-          notification(
-            "Error",
-            "Error registrando la llamada: " + error.message,
-            "fa fa-times",
-            "danger"
-          );
-        }
       } else {
         this.hasCTI = false;
       }
@@ -345,11 +301,6 @@ createApp({
         console.error("Error getting agent account code:", error);
         this.agent = "No agent";
       }
-    },
-    formatLabel(key) {
-      if (key === null || key === undefined) return "";
-      const s = String(key).replace(/_/g, " ");
-      return s.charAt(0).toUpperCase() + s.slice(1);
     },
 
     async initializeCTI() {
@@ -432,7 +383,6 @@ createApp({
       this.formData = {
         phoneOrEmail: "",
         document: "",
-        documentNumber: "",
         razonSocial: "",
         userType: "",
         region: "",
@@ -449,118 +399,8 @@ createApp({
         encauzadoDays: "",
       };
     },
-    async transferTokenizacion() {
-      if (!this.ctiData || !this.ctiData.Guid) {
-        notification(
-          "Warning",
-          "CTI o GUID no disponible.",
-          "fa fa-warning",
-          "warning"
-        );
-        return;
-      }
 
-      this.realizarTransferencia("tokenizacion");
-    },
-    async transferSanas() {
-      if (!this.ctiData || !this.ctiData.Guid) {
-        notification(
-          "Warning",
-          "CTI o GUID no disponible.",
-          "fa fa-warning",
-          "warning"
-        );
-        return;
-      }
 
-      const endpoint = api_url + "/AMEX_API_SANAS_GET";
-      const options = { guid: this.ctiData.Guid };
-
-      const response = await this.makeRequest(endpoint, options);
-      console.log(response);
-
-      if (response.status === 200) {
-        this.realizarTransferencia("sanas");
-      } else {
-        notification(
-          "Warning",
-          response.message || "No cumple criterios para transferencia a Sanas.",
-          "fa fa-warning",
-          "warning"
-        );
-      }
-    },
-    async loadAvailableCampaigns() {
-      try {
-        const query = `SELECT DISTINCT queuename FROM ccdata.queues_agents WHERE agent = '${this.agent}' AND channel = 'telephony' AND queuename LIKE '%->'`;
-        const result = await UC_get_async(query);
-
-        const campaignData = JSON.parse(result);
-
-        if (campaignData && campaignData.length > 0) {
-          this.availableCampaigns = campaignData.map((c) => c.queuename);
-        } else {
-          this.availableCampaigns = [];
-        }
-      } catch (error) {
-        console.error("Error loading available campaigns:", error);
-        this.availableCampaigns = [];
-      }
-    },
-    async onCampaignSelected() {
-      if (this.campaign.name) {
-        // Reset form when campaign changes
-        this.resetForm();
-      }
-    },
-    pausarAgente() {
-      let query = `UPDATE ccdata.asterisk_members SET paused = '1' WHERE membername = '${membername}';`;
-      UC_exec(query, "");
-    },
-    realizarTransferencia(to) {
-      let extension = "";
-      let destination = "";
-      if (to === "tokenizacion") {
-        extension = "##88888#";
-        destination = "Tokenización";
-      } else if (to === "sanas") {
-        extension = "##77777#";
-        destination = "Sanas Prácticas";
-      }
-      if (parent.__isInCall()) {
-        notification(
-          "Transferencia",
-          `Transfiriendo llamada a ${destination}...`,
-          "fa fa-phone",
-          "info"
-        );
-        parent.transfering = true;
-        parent.__SendDTMF(extension);
-        verificarLlamada();
-      } else {
-        console.log("No hay llamada activa");
-      }
-    },
-    async makeRequest(endpoint, options = {}) {
-      try {
-        const response = await UC_Http_proxy({
-          url: endpoint,
-          method: "POST",
-          headers: {},
-          body: JSON.stringify(options),
-          type: "application/json",
-        });
-
-        return {
-          status: response.code,
-          message: JSON.parse(response.body).message || "",
-          body: response.body,
-        };
-      } catch (error) {
-        console.error("Error making request to", endpoint, ":", error);
-        throw error;
-      }
-    },
     async searchUsers() {
       // Build WHERE clause based on filled search fields
       const conditions = [];
@@ -573,7 +413,7 @@ createApp({
 
       if (this.userSearch.document && this.userSearch.document.trim() !== "") {
         conditions.push(
-          `numero_documento LIKE '%${this.userSearch.document.trim()}%'`
+          `documento LIKE '%${this.userSearch.document.trim()}%'`
         );
       }
 
@@ -633,9 +473,8 @@ createApp({
     loadUserToForm(user) {
       // Load user data into the form fields
       this.formData.phoneOrEmail = user.contacto_cliente || "";
-      this.formData.document = user.tipo_documento || "";
-      this.formData.documentNumber = user.numero_documento || "";
       this.formData.razonSocial = user.razon_social || "";
+      this.formData.document = user.documento || "";
       this.formData.userType = user.tipo_usuario || "";
       this.formData.region = user.region || "";
       this.formData.contractType = user.modalidad || "";
@@ -675,10 +514,10 @@ createApp({
         return;
       }
 
-      if (!this.formData.documentNumber) {
+      if (!this.formData.document) {
         notification(
           "Advertencia",
-          "El campo Número de documento es requerido",
+          "El campo tipo de documento es requerido",
           "fa fa-warning",
           "warning"
         );
@@ -703,7 +542,6 @@ createApp({
           GUID: this.ctiData.Guid || null,
           contacto_cliente: this.formData.phoneOrEmail,
           tipo_documento: this.formData.document,
-          numero_documento: this.formData.documentNumber,
           razon_social: this.formData.razonSocial,
           tipo_usuario: this.formData.userType || null,
           region: this.formData.region || null,
@@ -723,7 +561,7 @@ createApp({
         };
 
         // Check if record exists (by document number)
-        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE numero_documento = '${this.formData.documentNumber}'`;
+        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE razon_social = '${this.formData.razonSocial}'`;
         const checkResult = await UC_get_async(checkQuery, "Repo");
         const recordExists = checkResult > 0;
 
@@ -740,7 +578,7 @@ createApp({
           }
           query = `UPDATE ccrepo.PERUCOMPRAS_Atenciones_Llamadas SET ${updateFields.join(
             ", "
-          )} WHERE numero_documento = '${this.formData.documentNumber}'`;
+          )} WHERE razon_social = '${this.formData.razonSocial}'`;
         } else {
           // Insert new record
           const columns = Object.keys(data).join(", ");
@@ -752,16 +590,21 @@ createApp({
           query = `INSERT INTO ccrepo.PERUCOMPRAS_Atenciones_Llamadas (${columns}) VALUES (${values})`;
         }
 
-        await UC_exec_async(query, "Repo");
+        const saveResult = await UC_exec_async(query, "Repo");
+        console.log("Save result:", saveResult);
 
-        notification(
-          "Éxito",
-          recordExists
-            ? "Datos actualizados correctamente"
-            : "Datos guardados correctamente",
-          "fa fa-check",
-          "success"
-        );
+        if (saveResult !== "ERROR") {
+          notification(
+            "Éxito",
+            recordExists
+              ? "Datos actualizados correctamente"
+              : "Datos guardados correctamente",
+            "fa fa-check",
+            "success"
+          );
+        } else {
+          throw new Error("Database operation failed");
+        }
       } catch (error) {
         console.error("Error saving form data:", error);
         notification(
@@ -786,16 +629,6 @@ createApp({
         return;
       }
 
-      if (!this.formData.documentNumber) {
-        notification(
-          "Advertencia",
-          "El campo Número de documento es requerido",
-          "fa fa-warning",
-          "warning"
-        );
-        return;
-      }
-
       if (!this.formData.razonSocial) {
         notification(
           "Advertencia",
@@ -807,22 +640,13 @@ createApp({
       }
 
       // Validate disposition before proceeding (skip if loaded from table)
-      if (!this.isLoadedFromTable && !this.canFinish) {
-        let reason = "";
-
-        if (!this.ctiData || !this.ctiData.Guid) {
-          reason = "No hay GUID disponible.";
-        } else if (this.dispoLevels[0].length > 0 && !this.selected[0]) {
-          reason = "Debe seleccionar una tipificación de Nivel 1.";
-        } else if (this.dispoLevels[1].length > 0 && !this.selected[1]) {
-          reason = "Debe seleccionar una tipificación de Nivel 2.";
-        } else if (this.dispoLevels[2].length > 0 && !this.selected[2]) {
-          reason = "Debe seleccionar una tipificación de Nivel 3.";
-        } else if (this.needsReschedule && !this.rescheduleDate) {
-          reason = "Debe seleccionar una fecha de reagendado.";
-        }
-
-        notification("Advertencia", reason, "fa fa-warning", "warning");
+      if (!this.isLoadedFromTable && (!this.ctiData || !this.ctiData.Guid)) {
+        notification(
+          "Advertencia",
+          "No hay GUID disponible.",
+          "fa fa-warning",
+          "warning"
+        );
         return;
       }
 
@@ -833,8 +657,7 @@ createApp({
         const data = {
           GUID: this.ctiData.Guid || null,
           contacto_cliente: this.formData.phoneOrEmail,
-          tipo_documento: this.formData.document,
-          numero_documento: this.formData.documentNumber,
+          documento: this.formData.document,
           razon_social: this.formData.razonSocial,
           tipo_usuario: this.formData.userType || null,
           region: this.formData.region || null,
@@ -854,7 +677,7 @@ createApp({
         };
 
         // Check if record exists (by document number)
-        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE numero_documento = '${this.formData.documentNumber}'`;
+        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE razon_social = '${this.formData.razonSocial}'`;
         const checkResult = await UC_get_async(checkQuery, "Repo");
         const recordExists = checkResult > 0;
 
@@ -871,7 +694,7 @@ createApp({
           }
           query = `UPDATE ccrepo.PERUCOMPRAS_Atenciones_Llamadas SET ${updateFields.join(
             ", "
-          )} WHERE numero_documento = '${this.formData.documentNumber}'`;
+          )} WHERE razon_social = '${this.formData.razonSocial}'`;
         } else {
           // Insert new record
           const columns = Object.keys(data).join(", ");
@@ -885,23 +708,14 @@ createApp({
 
         await UC_exec_async(query, "Repo");
 
-        // Step 2: Save disposition and finish (skip if loaded from table)
+        // Step 2: Close form if CTI (skip if loaded from table)
         if (!this.isLoadedFromTable) {
-          await this.saveClientDisposition();
-
           if (this.hasCTI) {
             UC_closeForm();
           }
         }
 
-        // Unblock UI after finishing
-        this.isCallActive = false;
-
-        // Clear campaign selection if no CTI
-        if (!this.hasCTI) {
-          this.campaign.name = "";
-        }
-        // Reset form but don't auto-load next client
+        // Reset form
         this.resetForm();
 
         // Reset the flag
