@@ -21,219 +21,85 @@ createApp({
             emailRegex.test(value) || "Debe ser un correo electrónico válido"
           );
         },
-        text_fifty_length: (value) => {
+        phone: (value) => {
+          const phoneRegex = /^\d{7,20}$/;
           return (
-            (value && value.length <= 50) || "No debe exceder los 50 caracteres"
-          );
-        },
-        eleven_number_or_email: (value) => {
-          const elevenDigitRegex = /^\d{11}$/;
-          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-          return (
-            elevenDigitRegex.test(value) ||
-            emailRegex.test(value) ||
-            "Debe ser un número de 11 dígitos o un correo electrónico válido"
+            phoneRegex.test(value) || "Debe ser un número de teléfono válido"
           );
         },
       },
-      userTypes: ["Proveedor", "Entidad", "Marca", "Otros"],
-      regions: [
-        "Amazonas",
-        "Ancash",
-        "Apurímac",
-        "Arequipa",
-        "Ayacucho",
-        "Cajamarca",
-        "Callao",
-        "Cusco",
-        "Huancavelica",
-        "Huánuco",
-        "Ica",
-        "Junín",
-        "La Libertad",
-        "Lambayeque",
-      ],
-      contractTypes: [
-        "Contratos menores",
-        "Compra por encargo",
-        "Compra centralizada",
-        "Compra pública de innovación",
-        "Ficha técnica",
-        "Compra directa",
-        "Acuerdo marco",
-        "Estandarización",
-        "Otros",
-      ],
-      consultDispositions: [
-        "Acceso al Sistema",
 
-        "Acceso a la Informacion Publica",
-        "Acreditacion de Marca",
-        "Actuaciones Preparatorias",
-        "Actualizacion de datos",
-        "Actualizacion de Recaudo",
-        "Ampliacion de Plazo de Entrega",
-        "Ampliacion de Publicacion de OCAM",
-        "Anexo 2 Proforma",
-        "Anexo 3 Orden de Compra",
-        "Bandeja de notificaciones",
-        "Boletos Aereos",
-        "Busqueda de fichas producto",
-        "Canales de Atencion",
-        "Capacitacion",
-        "Carta de Originalidad",
-        "Carta de Presentacion",
-        "Catalogo Electronico",
-        "Certificacion Presupuestal",
-        "Cesion de Derechos",
-        "Clasificadores",
-        "Codigo CIIU",
-        "Competencias de Peru Compras",
-        "Compra Agregada",
-        "Compra asistida",
-        "Compra Individual",
-        "Compra Ordinaria",
-        "Compra por Paquete",
-        "Compra por Encargo",
-        "Compras Corporativas",
-        "Comunicados",
-        "Constancia",
-        "Consultas generales / Solicitud de Informacion",
-        "Convocatoria de Personal CAS",
-        "Convocatorias",
-        "Compras financiadas por el BID",
-        "Correspondencia / Notificaciones",
-        "Cotizaciones",
-        "Creacion de Valores",
-        "Datos de Representante de Marca",
-        "Denuncia",
-        "Deposito de Garantia de Fiel Cumplimiento",
-        "Devolucion de Garantia de Fiel Cumplimiento",
-        "Difusion DCEME",
-        "Directivas",
-        "Directorio Institucional",
-        "Ejecucion Contractual",
-        "Entrega de Bienes",
-        "Estado de Orden de Compra",
-        "Estimador de precios",
-        "Evaluacion y Subsanacion de Fichas Producto",
-        "Exceptuacion de Compra por Catalogo Electronico",
-        "Exclusion e Inclusion de Proveedores",
-        "Expediente de Contratacion",
-        "Fichas Producto",
-        "Gran Compra",
-        "Homologacion",
-        "ID Certificacion",
-        "Incidencia",
-        "Incorporacion de nuevos productos",
-        "Incumplimiento de Pago",
-        "Inscripcion Proveedor",
-        "Ley y Reglamento de Contrataciones Publicas",
-        "Liberacion de Certificado Presupuestal",
-        "Listado de Bienes y Servicios comunes",
-        "Manual de Operatividad",
-        "Mejora de Ofertas",
-        "Mesa de Partes",
-        "Modificacion de reserva del CCP",
-        "Monto minimo de atencion",
-        "Montos minimos de Contratacion",
-        "Multiusuarios",
-        "Notificacion de Transparencia",
-        "Obligatoriedad de Contratar por Catalogo Electronico",
-        "Ofertas no Adjudicadas",
-        "Operatividad del Catalogo Electronico",
-        "Orden de Compra",
-        "Pladicop",
-        "Plazos de Entrega",
-        "Presentacion de Ofertas",
-        "Prevision presupuestal",
-        "Productos falsificados",
-        "Proforma",
-        "Reclamo",
-        "Recurso Impugnatorio",
-        "Rechazo de OCAM",
-        "Registro de nuevos Proveedores",
-        "Reglas de Operatividad",
-        "Requerimiento",
-        "Resolucion de Orden de Compra",
-        "Resultado de Proveedores",
-        "Sancion TCP",
-        "Seguimiento de Tramite / Correo",
-        "Semaforo",
-        "Solicitud de Capacitacion",
-        "Solicitud de reunion",
-        "Subasta Inversa Electronica",
-        "Tipo de Cambio",
-        "Tipo de Contratacion",
-        "Tipo de Entrega",
-        "Transparencia",
-        "Uso de imagen Institucional",
-        "Vigencia del Acuerdo Marco",
-      ],
-      atentionOrgans: [
-        "Jefatura",
-        "Gerencia General",
-        "Órgano de Control Institucional",
-        "Oficina de Asesoría Jurídica",
-        "Oficina de Planeamiento y Presupuesto",
-        "Oficina de Administración",
-        "Oficina de Tecnología de la Información",
-        "Oficina de Comunicaciones",
-        "Oficina de Atención al Usuario y Gestión Documentaria",
-        "Dirección de Estrategias Técnicas y Normativas",
-        "Dirección de Compras Electrónicas y Modalidades Eficientes",
-        "Dirección de Estandarización",
-        "Otro",
-      ],
-      consultStatus: ["Atendido", "Pendiente", "Encauzado"],
-      causeDetails: [
-        "Reclamo",
-        "Incidente",
-        "Denuncia",
-        "Acceso a la información",
-        "Consulta técnica",
-        "Otro",
-      ],
-      acuerdosMarco: [
-        "EXT-CE-2024-1 Baterías, pilas y accesorios",
-        "EXT-CE-2024-2 Equipos multimedia y accesorios",
-        "EXT-CE-2024-3 Materiales e insumos de limpieza y papeles para aseo y limpieza",
-        "EXT-CE-2022-5 Computadoras de escritorio, portátiles y escánere",
-        "EXT-CE-2021-6 Impresoras; consumibles; repuestos y accesorios de oficina",
-        "EXT-CE-2021-7 Útiles de escritorio, papeles y cartones",
-        "EXT-CE-2024-10 Llantas, neumáticos y accesorios",
-        "EXT-CE-2024-12 Pinturas, cerámicos, pisos, tuberías, sanitarios, accesorios y complementos",
-        "EXT-CE-2024-13 Equipos de aire acondicionado, similares y accesorios",
-        "EXT-CE-2024-14 Luminarias, materiales y cables eléctricos",
-        "IM-CE-2020-15 Servicio de emisión de boletos aéreos",
-        "EXT-CE-2024-16 Accesorios domésticos y bienes para usos diversos",
-        "EXT-CE-2024-17 Bebidas no alcohólicas",
-        "EXT-CE-2024-18 Cereales, aceite, azúcares y menestras",
-        "EXT-CE-2024-26 Máquinas y equipos, y herramientas para jardinería, silvicultura y agricultura",
-        "EXT-CE-2024-28 Calzado y botas",
-        "No aplica",
-      ],
-      documentTypes: ["RUC", "DNI", "C.E.", "Otros"],
-      encauzadoEmails: [
-        "acuerdosmarco@perucompras.gob.pe",
-        "administrador.acuerdos@perucompras.gob.pe",
-        "estandarizacion@perucompras.gob.pe",
-        "comprascorporativas@perucompras.gob.pe",
-        "comunicaciones@perucompras.gob.pe",
-        "transparencia@perucompras.gob.pe",
-        "mesadepartes@perucompras.gob.pe",
-        "reclamaciones@perucompras.gob.pe",
-        "correspondencia@perucompras.gob.pe",
-        "consultasconvocatorias@perucompras.gob.pe",
-      ],
+      // Catalog data loaded from database
+      catalogs: {
+        tipoUsuario: [],
+        tipoDocumento: [],
+        region: [],
+        temaConsulta: [],
+        estadoConsulta: [],
+        estadoAtencion: [],
+        organoAtencion: [],
+        satisfaccionServicio: [],
+        valoracionAtencion: [],
+        acuerdoMarco: [],
+      },
+
       isProcessing: false,
+      isSaving: false,
       ctiData: {},
       hasCTI: false,
-      agent: "", // Store agent account code
-      notes: "", // Store notes for the client
-      interactionChannel: "", // Store the channel type: "Teléfono", "Webchat", or "SMS"
-      activeTab: "form", // Control which tab is active
-      isLoadedFromTable: false, // Track if user was loaded from search table
+      agent: "",
+      agentId: null,
+      activeTab: "form",
+      isLoadedFromTable: false,
+
+      // Common interaction data (PERUCOMPRAS_interactions table)
+      interaction: {
+        guid: "",
+        channel: "",
+        fecha_hora_interaccion: "",
+        tipo_usuario_id: null,
+        tipo_documento_id: null,
+        numero_documento: "",
+        razon_social: "",
+        region_id: null,
+        tema_consulta_id: null,
+        estado_consulta_id: null,
+        organo_atencion_id: null,
+        agente_id: null,
+        satisfaccion_servicio_id: null,
+      },
+
+      // Channel-specific data (PERUCOMPRAS_interaction_llamada)
+      llamadaData: {
+        numero_telefonico: "",
+        duracion_llamada: 0,
+        acuerdo_marco_id: null,
+        detalle_acuerdo_marco: "",
+        detalle_consulta: "",
+      },
+
+      // Channel-specific data (PERUCOMPRAS_interaction_whatsapp)
+      whatsappData: {
+        numero_celular: "",
+        consulta: "",
+        respuesta: "",
+        valoracion_atencion_id: null,
+      },
+
+      // Channel-specific data (PERUCOMPRAS_interaction_email)
+      emailData: {
+        correo: "",
+        asunto: "",
+        fecha_atencion: null,
+        estado_atencion_id: null,
+        estado_atencion_encauzado: false,
+        fecha_derivacion: null,
+        dias_atencion_organo: null,
+        estado_atencion_organo_id: null,
+        agente_atendio_id: null,
+      },
+
+      // User search functionality
       userSearch: {
         phone: "",
         document: "",
@@ -242,38 +108,123 @@ createApp({
       userSearchResults: [],
       isSearching: false,
       userTableHeaders: [
-        { title: "Contacto", key: "contacto_cliente", align: "start" },
-        { title: "Documento", key: "documento", align: "start" },
+        { title: "Canal", key: "channel", align: "start" },
+        { title: "Contacto", key: "contacto", align: "start" },
+        { title: "Documento", key: "numero_documento", align: "start" },
         { title: "Razón Social", key: "razon_social", align: "start" },
-        { title: "Tipo de Usuario", key: "tipo_usuario", align: "start" },
-        { title: "Región", key: "region", align: "start" },
+        { title: "Fecha", key: "fecha_hora_interaccion", align: "start" },
         { title: "Acciones", key: "actions", sortable: false, align: "center" },
       ],
-      formData: {
-        phoneOrEmail: "",
-        document: "",
-        razonSocial: "",
-        userType: "",
-        region: "",
-        contractType: "",
-        consultDisposition: "",
-        consultDetails: "",
-        acuerdoMarco: "",
-        otros: "",
-        atentionOrgan: "",
-        consultStatus: "",
-        encauzadoEmail: "",
-        causeDetail: "",
-        encauzadoDate: new Date().toISOString().split("T")[0],
-        encauzadoDays: "",
-      },
     };
   },
   mounted() {
     this.initializeForm();
   },
-  computed: {},
+  computed: {
+    // Helper to get catalog item name by ID
+    getCatalogName() {
+      return (catalogArray, id) => {
+        const item = catalogArray.find((c) => c.id === id);
+        return item ? item.nombre : "";
+      };
+    },
+  },
   methods: {
+    // Load all catalog data from database
+    async loadCatalogs() {
+      try {
+        const catalogQueries = [
+          {
+            key: "tipoUsuario",
+            query:
+              "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_tipo_usuario ORDER BY nombre",
+          },
+          {
+            key: "tipoDocumento",
+            query:
+              "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_tipo_documento ORDER BY nombre",
+          },
+          {
+            key: "region",
+            query:
+              "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_region ORDER BY nombre",
+          },
+          {
+            key: "temaConsulta",
+            query:
+              "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_tema_consulta ORDER BY nombre",
+          },
+          {
+            key: "estadoConsulta",
+            query:
+              "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_estado_consulta ORDER BY nombre",
+          },
+          {
+            key: "estadoAtencion",
+            query:
+              "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_estado_atencion ORDER BY nombre",
+          },
+          {
+            key: "organoAtencion",
+            query:
+              "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_organo_atencion ORDER BY nombre",
+          },
+          {
+            key: "satisfaccionServicio",
+            query:
+              "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_satisfaccion_servicio ORDER BY nombre",
+          },
+          {
+            key: "valoracionAtencion",
+            query:
+              "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_valoracion_atencion ORDER BY nombre",
+          },
+          {
+            key: "acuerdoMarco",
+            query:
+              "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_acuerdo_marco ORDER BY nombre",
+          },
+        ];
+
+        // Load all catalogs in parallel
+        const promises = catalogQueries.map(async ({ key, query }) => {
+          try {
+            const result = await UC_get_async(query, "Repo");
+            const data = JSON.parse(result);
+            this.catalogs[key] = data || [];
+          } catch (error) {
+            console.error(`Error loading catalog ${key}:`, error);
+            this.catalogs[key] = [];
+          }
+        });
+
+        await Promise.all(promises);
+        console.log("Catalogs loaded successfully");
+      } catch (error) {
+        console.error("Error loading catalogs:", error);
+        notification(
+          "Error",
+          "Error al cargar los catálogos: " + error.message,
+          "fa fa-times",
+          "danger"
+        );
+      }
+    },
+
+    async getAgentId() {
+      try {
+        if (this.agent && this.agent !== "No agent") {
+          const query = `SELECT id FROM ccdata.sip WHERE accountcode = '${this.agent}' LIMIT 1`;
+          const result = await UC_get_async(query, "Repo");
+          const data = JSON.parse(result);
+          if (data && data.length > 0) {
+            this.agentId = data[0].id;
+          }
+        }
+      } catch (error) {
+        console.error("Error getting agent ID:", error);
+      }
+    },
     getTodayDate() {
       const today = new Date();
       const year = today.getFullYear();
@@ -283,12 +234,33 @@ createApp({
     },
     async initializeForm() {
       this.setAgent();
+      await this.loadCatalogs();
+      await this.getAgentId();
 
       if (await this.initializeCTI()) {
         this.hasCTI = true;
       } else {
         this.hasCTI = false;
       }
+
+      // Initialize interaction data
+      this.interaction.guid = this.ctiData.Guid || this.generateGuid();
+      this.interaction.fecha_hora_interaccion = new Date()
+        .toISOString()
+        .slice(0, 19)
+        .replace("T", " ");
+      this.interaction.agente_id = this.agentId;
+    },
+
+    generateGuid() {
+      return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
+        /[xy]/g,
+        function (c) {
+          const r = (Math.random() * 16) | 0;
+          const v = c === "x" ? r : (r & 0x3) | 0x8;
+          return v.toString(16);
+        }
+      );
     },
     setAgent() {
       try {
@@ -325,7 +297,7 @@ createApp({
     },
     detectInteractionChannel() {
       if (!this.ctiData) {
-        this.interactionChannel = "";
+        this.interaction.channel = "";
         return;
       }
 
@@ -333,87 +305,123 @@ createApp({
       if (this.ctiData.Channel) {
         const channelValue = this.ctiData.Channel.toLowerCase();
 
-        if (channelValue === "webchat" || channelValue.includes("chat")) {
-          this.interactionChannel = "Webchat";
-          // For webchat, Callerid contains the email
+        if (channelValue === "whatsapp" || channelValue.includes("whatsapp")) {
+          this.interaction.channel = "WHATSAPP";
+          // For WhatsApp, Callerid contains the phone number
           if (this.ctiData.Callerid) {
-            this.formData.phoneOrEmail = this.ctiData.Callerid;
+            this.whatsappData.numero_celular = this.ctiData.Callerid;
           }
-        } else if (channelValue === "sms" || channelValue.includes("sms")) {
-          this.interactionChannel = "SMS";
-          // For SMS, Callerid contains the phone number
+        } else if (channelValue === "email" || channelValue.includes("mail")) {
+          this.interaction.channel = "EMAIL";
+          // For email, Callerid contains the email address
           if (this.ctiData.Callerid) {
-            this.formData.phoneOrEmail = this.ctiData.Callerid;
+            this.emailData.correo = this.ctiData.Callerid;
           }
+        } else if (
+          channelValue === "webchat" ||
+          channelValue.includes("chat")
+        ) {
+          this.interaction.channel = "WEBCHAT";
+          // Webchat has no additional channel-specific fields
+          // Uses only common interaction fields
         } else {
-          // Other channel types
-          this.interactionChannel =
-            channelValue.charAt(0).toUpperCase() + channelValue.slice(1);
+          // Default to phone call
+          this.interaction.channel = "LLAMADA";
           if (this.ctiData.Callerid) {
-            this.formData.phoneOrEmail = this.ctiData.Callerid;
+            this.llamadaData.numero_telefonico = this.ctiData.Callerid;
           }
         }
       } else {
         // No Channel key means it's a phone call
-        this.interactionChannel = "Teléfono";
+        this.interaction.channel = "LLAMADA";
         // For phone calls, Callerid contains the phone number
         if (this.ctiData.Callerid) {
-          this.formData.phoneOrEmail = this.ctiData.Callerid;
+          this.llamadaData.numero_telefonico = this.ctiData.Callerid;
         }
       }
 
-      console.log(`Interaction channel detected: ${this.interactionChannel}`);
+      console.log(`Interaction channel detected: ${this.interaction.channel}`);
     },
     getChannelColor() {
-      switch (this.interactionChannel) {
-        case "Teléfono":
+      switch (this.interaction.channel) {
+        case "LLAMADA":
           return "blue";
-        case "Webchat":
+        case "WHATSAPP":
           return "green";
-        case "SMS":
+        case "EMAIL":
           return "orange";
+        case "WEBCHAT":
+          return "purple";
         default:
           return "grey";
       }
     },
     resetForm() {
-      this.notes = "";
-
-      // Clear all form data fields
-      this.formData = {
-        phoneOrEmail: "",
-        document: "",
-        razonSocial: "",
-        userType: "",
-        region: "",
-        contractType: "",
-        consultDisposition: "",
-        consultDetails: "",
-        acuerdoMarco: "",
-        otros: "",
-        atentionOrgan: "",
-        consultStatus: "",
-        encauzadoEmail: "",
-        causeDetail: "",
-        encauzadoDate: new Date().toISOString().split("T")[0],
-        encauzadoDays: "",
+      // Reset common interaction data
+      this.interaction = {
+        guid: this.generateGuid(),
+        channel: this.interaction.channel,
+        fecha_hora_interaccion: new Date()
+          .toISOString()
+          .slice(0, 19)
+          .replace("T", " "),
+        tipo_usuario_id: null,
+        tipo_documento_id: null,
+        numero_documento: "",
+        razon_social: "",
+        region_id: null,
+        tema_consulta_id: null,
+        estado_consulta_id: null,
+        organo_atencion_id: null,
+        agente_id: this.agentId,
+        satisfaccion_servicio_id: null,
       };
-    },
 
+      // Reset channel-specific data
+      this.llamadaData = {
+        numero_telefonico: "",
+        duracion_llamada: 0,
+        acuerdo_marco_id: null,
+        detalle_acuerdo_marco: "",
+        detalle_consulta: "",
+      };
+
+      this.whatsappData = {
+        numero_celular: "",
+        consulta: "",
+        respuesta: "",
+        valoracion_atencion_id: null,
+      };
+
+      this.emailData = {
+        correo: "",
+        asunto: "",
+        fecha_atencion: null,
+        estado_atencion_id: null,
+        estado_atencion_encauzado: false,
+        fecha_derivacion: null,
+        dias_atencion_organo: null,
+        estado_atencion_organo_id: null,
+        agente_atendio_id: this.agentId,
+      };
+
+      this.isLoadedFromTable = false;
+    },
 
     async searchUsers() {
       // Build WHERE clause based on filled search fields
       const conditions = [];
 
       if (this.userSearch.phone && this.userSearch.phone.trim() !== "") {
+        // Search in all channel-specific tables for phone/contact
         conditions.push(
-          `contacto_cliente LIKE '%${this.userSearch.phone.trim()}%'`
+          `(il.numero_telefonico LIKE '%${this.userSearch.phone.trim()}%' OR iw.numero_celular LIKE '%${this.userSearch.phone.trim()}%' OR ie.correo LIKE '%${this.userSearch.phone.trim()}%')`
         );
       }
 
       if (this.userSearch.document && this.userSearch.document.trim() !== "") {
         conditions.push(
-          `documento LIKE '%${this.userSearch.document.trim()}%'`
+          `i.numero_documento LIKE '%${this.userSearch.document.trim()}%'`
         );
       }
 
@@ -422,7 +430,7 @@ createApp({
         this.userSearch.razonSocial.trim() !== ""
       ) {
         conditions.push(
-          `razon_social LIKE '%${this.userSearch.razonSocial.trim()}%'`
+          `i.razon_social LIKE '%${this.userSearch.razonSocial.trim()}%'`
         );
       }
 
@@ -440,9 +448,23 @@ createApp({
       this.isSearching = true;
 
       try {
-        // TODO: Replace with your actual table name and columns
         const whereClause = conditions.join(" AND ");
-        const query = `SELECT * FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE ${whereClause} LIMIT 100`;
+        const query = `
+          SELECT 
+            i.guid,
+            i.channel,
+            i.fecha_hora_interaccion,
+            i.numero_documento,
+            i.razon_social,
+            COALESCE(il.numero_telefonico, iw.numero_celular, ie.correo) as contacto
+          FROM ccrepo.PERUCOMPRAS_interactions i
+          LEFT JOIN ccrepo.PERUCOMPRAS_interaction_llamada il ON i.guid = il.guid
+          LEFT JOIN ccrepo.PERUCOMPRAS_interaction_whatsapp iw ON i.guid = iw.guid
+          LEFT JOIN ccrepo.PERUCOMPRAS_interaction_email ie ON i.guid = ie.guid
+          WHERE ${whereClause}
+          ORDER BY i.fecha_hora_interaccion DESC
+          LIMIT 100
+        `;
 
         const result = await UC_get_async(query, "Repo");
         const userData = JSON.parse(result);
@@ -452,7 +474,7 @@ createApp({
         if (this.userSearchResults.length === 0) {
           notification(
             "Info",
-            "No se encontraron usuarios con los criterios especificados",
+            "No se encontraron interacciones con los criterios especificados",
             "fa fa-info",
             "info"
           );
@@ -470,61 +492,105 @@ createApp({
         this.isSearching = false;
       }
     },
-    loadUserToForm(user) {
-      // Load user data into the form fields
-      this.formData.phoneOrEmail = user.contacto_cliente || "";
-      this.formData.razonSocial = user.razon_social || "";
-      this.formData.document = user.documento || "";
-      this.formData.userType = user.tipo_usuario || "";
-      this.formData.region = user.region || "";
-      this.formData.contractType = user.modalidad || "";
-      this.formData.consultDisposition = user.tipificacion || "";
-      this.formData.consultDetails = user.detalle || "";
-      this.formData.atentionOrgan = user.organo || "";
-      this.formData.consultStatus = user.estado || "";
-      this.formData.encauzadoEmail = user.email_encauzado || "";
-      this.formData.causeDetail = user.detalle_encauzado || "";
-      this.formData.encauzadoDate = user.fecha_encauzado || "";
-      this.formData.encauzadoDays = user.dias_atencion || "";
-      this.formData.acuerdoMarco = user.acuerdo || "";
-      this.formData.otros = user.otros || "";
+    async loadUserToForm(user) {
+      try {
+        // Load full interaction data from database
+        const query = `
+          SELECT 
+            i.*,
+            il.numero_telefonico, il.duracion_llamada, il.acuerdo_marco_id, 
+            il.detalle_acuerdo_marco, il.detalle_consulta,
+            iw.numero_celular, iw.consulta, iw.respuesta, iw.valoracion_atencion_id,
+            ie.correo, ie.asunto, ie.fecha_atencion, ie.estado_atencion_id,
+            ie.estado_atencion_encauzado, ie.fecha_derivacion, ie.dias_atencion_organo,
+            ie.estado_atencion_organo_id, ie.agente_atendio_id
+          FROM ccrepo.PERUCOMPRAS_interactions i
+          LEFT JOIN ccrepo.PERUCOMPRAS_interaction_llamada il ON i.guid = il.guid
+          LEFT JOIN ccrepo.PERUCOMPRAS_interaction_whatsapp iw ON i.guid = iw.guid
+          LEFT JOIN ccrepo.PERUCOMPRAS_interaction_email ie ON i.guid = ie.guid
+          WHERE i.guid = '${user.guid}'
+        `;
 
-      // Mark as loaded from table to skip GUID/disposition validation
-      this.isLoadedFromTable = true;
+        const result = await UC_get_async(query, "Repo");
+        const data = JSON.parse(result);
 
-      // Switch to form tab
-      this.activeTab = "form";
+        if (data && data.length > 0) {
+          const fullData = data[0];
 
-      notification(
-        "Success",
-        "Usuario cargado exitosamente",
-        "fa fa-check",
-        "success"
-      );
+          // Load common interaction data
+          this.interaction = {
+            guid: fullData.guid,
+            channel: fullData.channel,
+            fecha_hora_interaccion: fullData.fecha_hora_interaccion,
+            tipo_usuario_id: fullData.tipo_usuario_id,
+            tipo_documento_id: fullData.tipo_documento_id,
+            numero_documento: fullData.numero_documento,
+            razon_social: fullData.razon_social,
+            region_id: fullData.region_id,
+            tema_consulta_id: fullData.tema_consulta_id,
+            estado_consulta_id: fullData.estado_consulta_id,
+            organo_atencion_id: fullData.organo_atencion_id,
+            agente_id: fullData.agente_id,
+            satisfaccion_servicio_id: fullData.satisfaccion_servicio_id,
+          };
+
+          // Load channel-specific data
+          if (fullData.channel === "LLAMADA") {
+            this.llamadaData = {
+              numero_telefonico: fullData.numero_telefonico || "",
+              duracion_llamada: fullData.duracion_llamada || 0,
+              acuerdo_marco_id: fullData.acuerdo_marco_id,
+              detalle_acuerdo_marco: fullData.detalle_acuerdo_marco || "",
+              detalle_consulta: fullData.detalle_consulta || "",
+            };
+          } else if (fullData.channel === "WHATSAPP") {
+            this.whatsappData = {
+              numero_celular: fullData.numero_celular || "",
+              consulta: fullData.consulta || "",
+              respuesta: fullData.respuesta || "",
+              valoracion_atencion_id: fullData.valoracion_atencion_id,
+            };
+          } else if (fullData.channel === "EMAIL") {
+            this.emailData = {
+              correo: fullData.correo || "",
+              asunto: fullData.asunto || "",
+              fecha_atencion: fullData.fecha_atencion,
+              estado_atencion_id: fullData.estado_atencion_id,
+              estado_atencion_encauzado:
+                fullData.estado_atencion_encauzado || false,
+              fecha_derivacion: fullData.fecha_derivacion,
+              dias_atencion_organo: fullData.dias_atencion_organo,
+              estado_atencion_organo_id: fullData.estado_atencion_organo_id,
+              agente_atendio_id: fullData.agente_atendio_id,
+            };
+          }
+
+          // Mark as loaded from table
+          this.isLoadedFromTable = true;
+
+          // Switch to form tab
+          this.activeTab = "form";
+
+          notification(
+            "Success",
+            "Interacci\u00f3n cargada exitosamente",
+            "fa fa-check",
+            "success"
+          );
+        }
+      } catch (error) {
+        console.error("Error loading user to form:", error);
+        notification(
+          "Error",
+          "Error al cargar la interacci\u00f3n: " + error.message,
+          "fa fa-times",
+          "danger"
+        );
+      }
     },
     async saveFormData() {
-      // Validate required fields
-      if (!this.formData.phoneOrEmail) {
-        notification(
-          "Advertencia",
-          "El campo Teléfono o email es requerido",
-          "fa fa-warning",
-          "warning"
-        );
-        return;
-      }
-
-      if (!this.formData.document) {
-        notification(
-          "Advertencia",
-          "El campo tipo de documento es requerido",
-          "fa fa-warning",
-          "warning"
-        );
-        return;
-      }
-
-      if (!this.formData.razonSocial) {
+      // Validate required common fields
+      if (!this.interaction.razon_social) {
         notification(
           "Advertencia",
           "El campo Razón Social es requerido",
@@ -534,77 +600,165 @@ createApp({
         return;
       }
 
+      if (!this.interaction.tipo_usuario_id) {
+        notification(
+          "Advertencia",
+          "El campo Tipo de Usuario es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      if (!this.interaction.tema_consulta_id) {
+        notification(
+          "Advertencia",
+          "El campo Tema de Consulta es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      if (!this.interaction.estado_consulta_id) {
+        notification(
+          "Advertencia",
+          "El campo Estado de Consulta es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      // Validate channel-specific fields
+      if (
+        this.interaction.channel === "LLAMADA" &&
+        !this.llamadaData.numero_telefonico
+      ) {
+        notification(
+          "Advertencia",
+          "El número telefónico es requerido para llamadas",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      if (
+        this.interaction.channel === "WHATSAPP" &&
+        !this.whatsappData.numero_celular
+      ) {
+        notification(
+          "Advertencia",
+          "El número de WhatsApp es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      if (this.interaction.channel === "EMAIL" && !this.emailData.correo) {
+        notification(
+          "Advertencia",
+          "El correo electrónico es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      // WEBCHAT has no additional required fields beyond common interaction data
+
       this.isSaving = true;
 
       try {
-        // Prepare the data for insertion/update
-        const data = {
-          GUID: this.ctiData.Guid || null,
-          contacto_cliente: this.formData.phoneOrEmail,
-          tipo_documento: this.formData.document,
-          razon_social: this.formData.razonSocial,
-          tipo_usuario: this.formData.userType || null,
-          region: this.formData.region || null,
-          modalidad: this.formData.contractType || null,
-          tipificacion: this.formData.consultDisposition || null,
-          detalle: this.formData.consultDetails || null,
-          acuerdo: this.formData.acuerdoMarco || null,
-          otros: this.formData.otros || null,
-          organo: this.formData.atentionOrgan || null,
-          estado: this.formData.consultStatus || null,
-          email_encauzado: this.formData.encauzadoEmail || null,
-          detalle_encauzado: this.formData.causeDetail || null,
-          fecha_encauzado: this.formData.encauzadoDate || null,
-          dias_atencion: this.formData.encauzadoDays || null,
-          atendido: this.agent || null,
-          observaciones: this.notes || null,
-        };
-
-        // Check if record exists (by document number)
-        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE razon_social = '${this.formData.razonSocial}'`;
+        // Check if interaction exists
+        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_interactions WHERE guid = '${this.interaction.guid}'`;
         const checkResult = await UC_get_async(checkQuery, "Repo");
         const recordExists = checkResult > 0;
+
+        // Prepare interaction data
+        const interactionValues = [
+          `'${this.interaction.guid}'`,
+          `'${this.interaction.channel}'`,
+          `'${this.interaction.fecha_hora_interaccion}'`,
+          this.interaction.tipo_usuario_id || "NULL",
+          this.interaction.tipo_documento_id || "NULL",
+          this.interaction.numero_documento
+            ? `'${this.interaction.numero_documento.replace(/'/g, "''")}'`
+            : "NULL",
+          this.interaction.razon_social
+            ? `'${this.interaction.razon_social.replace(/'/g, "''")}'`
+            : "NULL",
+          this.interaction.region_id || "NULL",
+          this.interaction.tema_consulta_id || "NULL",
+          this.interaction.estado_consulta_id || "NULL",
+          this.interaction.organo_atencion_id || "NULL",
+          this.interaction.agente_id || "NULL",
+          this.interaction.satisfaccion_servicio_id || "NULL",
+        ];
 
         let query;
         if (recordExists) {
           // Update existing record
-          const updateFields = [];
-          for (const [key, value] of Object.entries(data)) {
-            if (value !== null) {
-              updateFields.push(
-                `${key} = '${String(value).replace(/'/g, "''")}'`
-              );
-            }
-          }
-          query = `UPDATE ccrepo.PERUCOMPRAS_Atenciones_Llamadas SET ${updateFields.join(
-            ", "
-          )} WHERE razon_social = '${this.formData.razonSocial}'`;
+          query = `
+            UPDATE ccrepo.PERUCOMPRAS_interactions SET
+              channel = '${this.interaction.channel}',
+              fecha_hora_interaccion = '${
+                this.interaction.fecha_hora_interaccion
+              }',
+              tipo_usuario_id = ${this.interaction.tipo_usuario_id || "NULL"},
+              tipo_documento_id = ${
+                this.interaction.tipo_documento_id || "NULL"
+              },
+              numero_documento = ${
+                this.interaction.numero_documento
+                  ? `'${this.interaction.numero_documento.replace(/'/g, "''")}'`
+                  : "NULL"
+              },
+              razon_social = ${
+                this.interaction.razon_social
+                  ? `'${this.interaction.razon_social.replace(/'/g, "''")}'`
+                  : "NULL"
+              },
+              region_id = ${this.interaction.region_id || "NULL"},
+              tema_consulta_id = ${this.interaction.tema_consulta_id || "NULL"},
+              estado_consulta_id = ${
+                this.interaction.estado_consulta_id || "NULL"
+              },
+              organo_atencion_id = ${
+                this.interaction.organo_atencion_id || "NULL"
+              },
+              agente_id = ${this.interaction.agente_id || "NULL"},
+              satisfaccion_servicio_id = ${
+                this.interaction.satisfaccion_servicio_id || "NULL"
+              }
+            WHERE guid = '${this.interaction.guid}'
+          `;
         } else {
-          // Insert new record
-          const columns = Object.keys(data).join(", ");
-          const values = Object.values(data)
-            .map((v) =>
-              v !== null ? `'${String(v).replace(/'/g, "''")}' ` : "NULL"
-            )
-            .join(", ");
-          query = `INSERT INTO ccrepo.PERUCOMPRAS_Atenciones_Llamadas (${columns}) VALUES (${values})`;
+          // Insert new interaction record
+          query = `
+            INSERT INTO ccrepo.PERUCOMPRAS_interactions 
+            (guid, channel, fecha_hora_interaccion, tipo_usuario_id, tipo_documento_id, 
+             numero_documento, razon_social, region_id, tema_consulta_id, estado_consulta_id, 
+             organo_atencion_id, agente_id, satisfaccion_servicio_id)
+            VALUES (${interactionValues.join(", ")})
+          `;
         }
 
-        const saveResult = await UC_exec_async(query, "Repo");
-        console.log("Save result:", saveResult);
+        await UC_exec_async(query, "Repo");
 
-        if (saveResult !== "ERROR") {
-          notification(
-            "Éxito",
-            recordExists
-              ? "Datos actualizados correctamente"
-              : "Datos guardados correctamente",
-            "fa fa-check",
-            "success"
-          );
-        } else {
-          throw new Error("Database operation failed");
-        }
+        // Save channel-specific data
+        await this.saveChannelSpecificData(recordExists);
+
+        notification(
+          "Éxito",
+          recordExists
+            ? "Datos actualizados correctamente"
+            : "Datos guardados correctamente",
+          "fa fa-check",
+          "success"
+        );
       } catch (error) {
         console.error("Error saving form data:", error);
         notification(
@@ -617,127 +771,186 @@ createApp({
         this.isSaving = false;
       }
     },
-    async saveAndFinish() {
-      // Validate form data first
-      if (!this.formData.phoneOrEmail) {
-        notification(
-          "Advertencia",
-          "El campo Teléfono o email es requerido",
-          "fa fa-warning",
-          "warning"
-        );
-        return;
+
+    async saveChannelSpecificData(isUpdate) {
+      const guid = this.interaction.guid;
+
+      // WEBCHAT has no channel-specific table, only uses common interaction fields
+      if (this.interaction.channel === "WEBCHAT") {
+        return; // No additional data to save
       }
 
-      if (!this.formData.razonSocial) {
-        notification(
-          "Advertencia",
-          "El campo Razón Social es requerido",
-          "fa fa-warning",
-          "warning"
-        );
-        return;
-      }
+      if (this.interaction.channel === "LLAMADA") {
+        const values = [
+          `'${guid}'`,
+          `'${this.llamadaData.numero_telefonico}'`,
+          this.llamadaData.duracion_llamada || 0,
+          this.llamadaData.acuerdo_marco_id || "NULL",
+          this.llamadaData.detalle_acuerdo_marco
+            ? `'${this.llamadaData.detalle_acuerdo_marco.replace(/'/g, "''")}'`
+            : "NULL",
+          this.llamadaData.detalle_consulta
+            ? `'${this.llamadaData.detalle_consulta.replace(/'/g, "''")}'`
+            : "NULL",
+        ];
 
-      // Validate disposition before proceeding (skip if loaded from table)
-      if (!this.isLoadedFromTable && (!this.ctiData || !this.ctiData.Guid)) {
-        notification(
-          "Advertencia",
-          "No hay GUID disponible.",
-          "fa fa-warning",
-          "warning"
-        );
-        return;
-      }
-
-      this.isProcessing = true;
-
-      try {
-        // Step 1: Save form data
-        const data = {
-          GUID: this.ctiData.Guid || null,
-          contacto_cliente: this.formData.phoneOrEmail,
-          documento: this.formData.document,
-          razon_social: this.formData.razonSocial,
-          tipo_usuario: this.formData.userType || null,
-          region: this.formData.region || null,
-          modalidad: this.formData.contractType || null,
-          tipificacion: this.formData.consultDisposition || null,
-          detalle: this.formData.consultDetails || null,
-          acuerdo: this.formData.acuerdoMarco || null,
-          otros: this.formData.otros || null,
-          organo: this.formData.atentionOrgan || null,
-          estado: this.formData.consultStatus || null,
-          email_encauzado: this.formData.encauzadoEmail || null,
-          detalle_encauzado: this.formData.causeDetail || null,
-          fecha_encauzado: this.formData.encauzadoDate || null,
-          dias_atencion: this.formData.encauzadoDays || null,
-          atendido: this.agent || null,
-          observaciones: this.notes || null,
-        };
-
-        // Check if record exists (by document number)
-        const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_Atenciones_Llamadas WHERE razon_social = '${this.formData.razonSocial}'`;
-        const checkResult = await UC_get_async(checkQuery, "Repo");
-        const recordExists = checkResult > 0;
-
-        let query;
-        if (recordExists) {
-          // Update existing record
-          const updateFields = [];
-          for (const [key, value] of Object.entries(data)) {
-            if (value !== null) {
-              updateFields.push(
-                `${key} = '${String(value).replace(/'/g, "''")}'`
-              );
-            }
-          }
-          query = `UPDATE ccrepo.PERUCOMPRAS_Atenciones_Llamadas SET ${updateFields.join(
-            ", "
-          )} WHERE razon_social = '${this.formData.razonSocial}'`;
-        } else {
-          // Insert new record
-          const columns = Object.keys(data).join(", ");
-          const values = Object.values(data)
-            .map((v) =>
-              v !== null ? `'${String(v).replace(/'/g, "''")}' ` : "NULL"
-            )
-            .join(", ");
-          query = `INSERT INTO ccrepo.PERUCOMPRAS_Atenciones_Llamadas (${columns}) VALUES (${values})`;
-        }
+        const query = isUpdate
+          ? `
+            UPDATE ccrepo.PERUCOMPRAS_interaction_llamada SET
+              numero_telefonico = '${this.llamadaData.numero_telefonico}',
+              duracion_llamada = ${this.llamadaData.duracion_llamada || 0},
+              acuerdo_marco_id = ${this.llamadaData.acuerdo_marco_id || "NULL"},
+              detalle_acuerdo_marco = ${
+                this.llamadaData.detalle_acuerdo_marco
+                  ? `'${this.llamadaData.detalle_acuerdo_marco.replace(
+                      /'/g,
+                      "''"
+                    )}'`
+                  : "NULL"
+              },
+              detalle_consulta = ${
+                this.llamadaData.detalle_consulta
+                  ? `'${this.llamadaData.detalle_consulta.replace(/'/g, "''")}'`
+                  : "NULL"
+              }
+            WHERE guid = '${guid}'
+          `
+          : `
+            INSERT INTO ccrepo.PERUCOMPRAS_interaction_llamada 
+            (guid, numero_telefonico, duracion_llamada, acuerdo_marco_id, detalle_acuerdo_marco, detalle_consulta)
+            VALUES (${values.join(", ")})
+          `;
 
         await UC_exec_async(query, "Repo");
+      } else if (this.interaction.channel === "WHATSAPP") {
+        const values = [
+          `'${guid}'`,
+          `'${this.whatsappData.numero_celular}'`,
+          this.whatsappData.consulta
+            ? `'${this.whatsappData.consulta.replace(/'/g, "''")}'`
+            : "NULL",
+          this.whatsappData.respuesta
+            ? `'${this.whatsappData.respuesta.replace(/'/g, "''")}'`
+            : "NULL",
+          this.whatsappData.valoracion_atencion_id || "NULL",
+        ];
 
-        // Step 2: Close form if CTI (skip if loaded from table)
-        if (!this.isLoadedFromTable) {
-          if (this.hasCTI) {
-            UC_closeForm();
-          }
-        }
+        const query = isUpdate
+          ? `
+            UPDATE ccrepo.PERUCOMPRAS_interaction_whatsapp SET
+              numero_celular = '${this.whatsappData.numero_celular}',
+              consulta = ${
+                this.whatsappData.consulta
+                  ? `'${this.whatsappData.consulta.replace(/'/g, "''")}'`
+                  : "NULL"
+              },
+              respuesta = ${
+                this.whatsappData.respuesta
+                  ? `'${this.whatsappData.respuesta.replace(/'/g, "''")}'`
+                  : "NULL"
+              },
+              valoracion_atencion_id = ${
+                this.whatsappData.valoracion_atencion_id || "NULL"
+              }
+            WHERE guid = '${guid}'
+          `
+          : `
+            INSERT INTO ccrepo.PERUCOMPRAS_interaction_whatsapp 
+            (guid, numero_celular, consulta, respuesta, valoracion_atencion_id)
+            VALUES (${values.join(", ")})
+          `;
 
-        // Reset form
-        this.resetForm();
+        await UC_exec_async(query, "Repo");
+      } else if (this.interaction.channel === "EMAIL") {
+        const values = [
+          `'${guid}'`,
+          `'${this.emailData.correo}'`,
+          this.emailData.asunto
+            ? `'${this.emailData.asunto.replace(/'/g, "''")}'`
+            : "NULL",
+          this.emailData.fecha_atencion
+            ? `'${this.emailData.fecha_atencion}'`
+            : "NULL",
+          this.emailData.estado_atencion_id || "NULL",
+          this.emailData.estado_atencion_encauzado ? 1 : 0,
+          this.emailData.fecha_derivacion
+            ? `'${this.emailData.fecha_derivacion}'`
+            : "NULL",
+          this.emailData.dias_atencion_organo || "NULL",
+          this.emailData.estado_atencion_organo_id || "NULL",
+          this.emailData.agente_atendio_id || "NULL",
+        ];
 
-        // Reset the flag
-        this.isLoadedFromTable = false;
+        const query = isUpdate
+          ? `
+            UPDATE ccrepo.PERUCOMPRAS_interaction_email SET
+              correo = '${this.emailData.correo}',
+              asunto = ${
+                this.emailData.asunto
+                  ? `'${this.emailData.asunto.replace(/'/g, "''")}'`
+                  : "NULL"
+              },
+              fecha_atencion = ${
+                this.emailData.fecha_atencion
+                  ? `'${this.emailData.fecha_atencion}'`
+                  : "NULL"
+              },
+              estado_atencion_id = ${
+                this.emailData.estado_atencion_id || "NULL"
+              },
+              estado_atencion_encauzado = ${
+                this.emailData.estado_atencion_encauzado ? 1 : 0
+              },
+              fecha_derivacion = ${
+                this.emailData.fecha_derivacion
+                  ? `'${this.emailData.fecha_derivacion}'`
+                  : "NULL"
+              },
+              dias_atencion_organo = ${
+                this.emailData.dias_atencion_organo || "NULL"
+              },
+              estado_atencion_organo_id = ${
+                this.emailData.estado_atencion_organo_id || "NULL"
+              },
+              agente_atendio_id = ${this.emailData.agente_atendio_id || "NULL"}
+            WHERE guid = '${guid}'
+          `
+          : `
+            INSERT INTO ccrepo.PERUCOMPRAS_interaction_email 
+            (guid, correo, asunto, fecha_atencion, estado_atencion_id, estado_atencion_encauzado,
+             fecha_derivacion, dias_atencion_organo, estado_atencion_organo_id, agente_atendio_id)
+            VALUES (${values.join(", ")})
+          `;
 
-        notification(
-          "Éxito",
-          "Datos guardados y cliente procesado exitosamente!",
-          "fa fa-check",
-          "success"
-        );
-      } catch (error) {
-        console.error("Error in save and finish process:", error);
-        notification(
-          "Error",
-          "Error al procesar: " + error.message,
-          "fa fa-times",
-          "danger"
-        );
-      } finally {
-        this.isProcessing = false;
+        await UC_exec_async(query, "Repo");
       }
+    },
+
+    async saveAndFinish() {
+      // First, save the form data
+      await this.saveFormData();
+
+      // Then close form if CTI (skip if loaded from table)
+      if (!this.isLoadedFromTable && this.hasCTI) {
+        try {
+          UC_closeForm();
+        } catch (error) {
+          console.error("Error closing form:", error);
+        }
+      }
+
+      // Reset form
+      this.resetForm();
+
+      // Reset the flag
+      this.isLoadedFromTable = false;
+
+      notification(
+        "Éxito",
+        "Datos guardados y cliente procesado exitosamente!",
+        "fa fa-check",
+        "success"
+      );
     },
   },
 })
