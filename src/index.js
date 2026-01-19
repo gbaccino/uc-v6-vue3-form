@@ -116,9 +116,8 @@ createApp({
       isSearching: false,
       userTableHeaders: [
         { title: "Canal", key: "channel", align: "start" },
-        { title: "Contacto", key: "contacto", align: "start" },
-        { title: "Documento", key: "numero_documento", align: "start" },
         { title: "Razón Social", key: "razon_social", align: "start" },
+        { title: "Documento", key: "numero_documento", align: "start" },
         { title: "Fecha", key: "fecha_hora_interaccion", align: "start" },
         { title: "Acciones", key: "actions", sortable: false, align: "center" },
       ],
@@ -473,16 +472,16 @@ createApp({
           SELECT 
             i.guid,
             i.channel,
-            i.fecha_hora_interaccion,
             i.numero_documento,
             i.razon_social,
-            COALESCE(il.numero_telefonico, iw.numero_celular, ie.correo, ip.numero_telefonico, ip.correo) as contacto
+            i.fecha_hora_interaccion
           FROM ccrepo.PERUCOMPRAS_interactions i
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_llamada il ON i.guid = il.guid
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_whatsapp iw ON i.guid = iw.guid
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_email ie ON i.guid = ie.guid
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_presencial ip ON i.guid = ip.guid
           WHERE ${whereClause}
+          GROUP BY i.guid, i.channel, i.numero_documento, i.razon_social, i.fecha_hora_interaccion
           ORDER BY i.fecha_hora_interaccion DESC
           LIMIT 100
         `;

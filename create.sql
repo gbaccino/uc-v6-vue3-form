@@ -59,7 +59,7 @@ CREATE TABLE ccrepo.PERUCOMPRAS_acuerdo_marco (
 CREATE TABLE ccrepo.PERUCOMPRAS_interactions (
     guid VARCHAR(64) PRIMARY KEY,
 
-    channel ENUM('LLAMADA','WHATSAPP','EMAIL') NOT NULL,
+    channel ENUM('LLAMADA','WHATSAPP','EMAIL','WEBCHAT', 'PRESENCIAL') NOT NULL,
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     fecha_hora_interaccion DATETIME NOT NULL,
