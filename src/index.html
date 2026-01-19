@@ -292,8 +292,8 @@
                       ></v-text-field>
 
                       <v-select
-                        v-model="emailData.estado_atencion_id"
-                        :items="catalogs.estadoAtencion"
+                        v-model="interaction.estado_consulta_id"
+                        :items="catalogs.estadoConsulta"
                         item-value="id"
                         item-title="nombre"
                         label="Estado de atención"
@@ -305,8 +305,6 @@
                       <v-checkbox
                         v-model="emailData.estado_atencion_encauzado"
                         label="Encauzado"
-                        density="compact"
-                        color="primary"
                       ></v-checkbox>
 
                       <div v-if="emailData.estado_atencion_encauzado">
@@ -330,7 +328,7 @@
 
                         <v-select
                           v-model="emailData.estado_atencion_organo_id"
-                          :items="catalogs.estadoAtencion"
+                          :items="catalogs.estadoConsulta"
                           item-value="id"
                           item-title="nombre"
                           label="Estado de atención en órgano"
@@ -339,6 +337,58 @@
                           variant="solo"
                         ></v-select>
                       </div>
+                    </div>
+
+                    <!-- Channel-Specific Fields: PRESENCIAL -->
+                    <div v-if="interaction.channel === 'PRESENCIAL'">
+                      <h4 class="mb-3">Datos de Atención Presencial</h4>
+
+                      <v-text-field
+                        v-model="presencialData.hora_ingreso"
+                        :rules="[rules.required]"
+                        type="time"
+                        label="Hora de ingreso"
+                        density="compact"
+                        bg-color="light-blue-darken-4"
+                        variant="solo"
+                      ></v-text-field>
+
+                      <v-text-field
+                        v-model="presencialData.hora_salida"
+                        type="time"
+                        label="Hora de salida"
+                        density="compact"
+                        bg-color="light-blue-darken-4"
+                        variant="solo"
+                      ></v-text-field>
+
+                      <v-text-field
+                        v-model="presencialData.numero_telefonico"
+                        placeholder="Número telefónico"
+                        label="Número telefónico (opcional)"
+                        density="compact"
+                        bg-color="light-blue-darken-4"
+                        variant="solo"
+                      ></v-text-field>
+
+                      <v-text-field
+                        v-model="presencialData.correo"
+                        :rules="presencialData.correo ? [rules.email] : []"
+                        placeholder="Correo electrónico"
+                        label="Correo electrónico (opcional)"
+                        density="compact"
+                        bg-color="light-blue-darken-4"
+                        variant="solo"
+                      ></v-text-field>
+
+                      <v-textarea
+                        v-model="presencialData.detalle_consulta"
+                        placeholder="Detalles de la consulta"
+                        label="Detalles de la consulta"
+                        density="compact"
+                        bg-color="light-blue-darken-4"
+                        variant="solo"
+                      ></v-textarea>
                     </div>
 
                     <!-- WEBCHAT has no additional fields -->

@@ -147,8 +147,32 @@ CREATE TABLE ccrepo.PERUCOMPRAS_interaction_email (
     FOREIGN KEY (agente_atendio_id) REFERENCES ccdata.sip(id)
 );
 
+/* =========================
+    PRESENCIAL
+========================= */
+
+CREATE TABLE ccrepo.PERUCOMPRAS_interaction_presencial (
+    guid VARCHAR(64) PRIMARY KEY,
+
+    hora_ingreso TIME NOT NULL,
+    hora_salida TIME NULL,
+
+    numero_telefonico VARCHAR(20) NULL,
+    correo VARCHAR(150) NULL,
+
+    detalle_consulta TEXT NULL,
+
+    CONSTRAINT fk_presencial_interaction
+        FOREIGN KEY (guid)
+        REFERENCES ccrepo.PERUCOMPRAS_interactions (guid)
+        ON DELETE CASCADE
+);
+
+
 CREATE INDEX idx_int_tipo_doc_num ON ccrepo.PERUCOMPRAS_interactions (tipo_documento_id, numero_documento);
 CREATE INDEX idx_interactions_channel_fecha ON ccrepo.PERUCOMPRAS_interactions (channel, fecha_hora_interaccion);
 CREATE INDEX idx_interactions_agente ON ccrepo.PERUCOMPRAS_interactions (agente_id);
 CREATE INDEX idx_llamada_numero ON ccrepo.PERUCOMPRAS_interaction_llamada (numero_telefonico);
 CREATE INDEX idx_email_correo ON ccrepo.PERUCOMPRAS_interaction_email (correo);
+CREATE INDEX idx_presencial_telefono ON ccrepo.PERUCOMPRAS_interaction_presencial (numero_telefonico);
+CREATE INDEX idx_presencial_correo ON ccrepo.PERUCOMPRAS_interaction_presencial (correo);

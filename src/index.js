@@ -36,7 +36,6 @@ createApp({
         region: [],
         temaConsulta: [],
         estadoConsulta: [],
-        estadoAtencion: [],
         organoAtencion: [],
         satisfaccionServicio: [],
         valoracionAtencion: [],
@@ -91,12 +90,20 @@ createApp({
         correo: "",
         asunto: "",
         fecha_atencion: null,
-        estado_atencion_id: null,
         estado_atencion_encauzado: false,
         fecha_derivacion: null,
         dias_atencion_organo: null,
         estado_atencion_organo_id: null,
         agente_atendio_id: null,
+      },
+
+      // Channel-specific data (PERUCOMPRAS_interaction_presencial)
+      presencialData: {
+        hora_ingreso: "",
+        hora_salida: "",
+        numero_telefonico: "",
+        correo: "",
+        detalle_consulta: "",
       },
 
       // User search functionality
@@ -158,11 +165,6 @@ createApp({
             key: "estadoConsulta",
             query:
               "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_estado_consulta ORDER BY nombre",
-          },
-          {
-            key: "estadoAtencion",
-            query:
-              "SELECT id, nombre FROM ccrepo.PERUCOMPRAS_estado_atencion ORDER BY nombre",
           },
           {
             key: "organoAtencion",
@@ -241,6 +243,10 @@ createApp({
         this.hasCTI = true;
       } else {
         this.hasCTI = false;
+        // When there's no CTI, it's a manual form opening = PRESENCIAL
+        this.interaction.channel = "PRESENCIAL";
+        const now = new Date();
+        this.presencialData.hora_ingreso = now.toTimeString().slice(0, 5); // HH:MM format
       }
 
       // Initialize interaction data
@@ -305,7 +311,12 @@ createApp({
       if (this.ctiData.Channel) {
         const channelValue = this.ctiData.Channel.toLowerCase();
 
-        if (channelValue === "whatsapp" || channelValue.includes("whatsapp")) {
+        if (
+          channelValue === "whatsapp" ||
+          channelValue.includes("whatsapp") ||
+          channelValue === "sms" ||
+          channelValue.includes("sms")
+        ) {
           this.interaction.channel = "WHATSAPP";
           // For WhatsApp, Callerid contains the phone number
           if (this.ctiData.Callerid) {
@@ -345,13 +356,15 @@ createApp({
     getChannelColor() {
       switch (this.interaction.channel) {
         case "LLAMADA":
-          return "blue";
+          return "light-blue";
         case "WHATSAPP":
-          return "green";
+          return "light-green";
         case "EMAIL":
           return "orange";
         case "WEBCHAT":
-          return "purple";
+          return "pink";
+        case "PRESENCIAL":
+          return "amber";
         default:
           return "grey";
       }
@@ -397,12 +410,19 @@ createApp({
         correo: "",
         asunto: "",
         fecha_atencion: null,
-        estado_atencion_id: null,
         estado_atencion_encauzado: false,
         fecha_derivacion: null,
         dias_atencion_organo: null,
         estado_atencion_organo_id: null,
         agente_atendio_id: this.agentId,
+      };
+
+      this.presencialData = {
+        hora_ingreso: "",
+        hora_salida: "",
+        numero_telefonico: "",
+        correo: "",
+        detalle_consulta: "",
       };
 
       this.isLoadedFromTable = false;
@@ -415,7 +435,7 @@ createApp({
       if (this.userSearch.phone && this.userSearch.phone.trim() !== "") {
         // Search in all channel-specific tables for phone/contact
         conditions.push(
-          `(il.numero_telefonico LIKE '%${this.userSearch.phone.trim()}%' OR iw.numero_celular LIKE '%${this.userSearch.phone.trim()}%' OR ie.correo LIKE '%${this.userSearch.phone.trim()}%')`
+          `(il.numero_telefonico LIKE '%${this.userSearch.phone.trim()}%' OR iw.numero_celular LIKE '%${this.userSearch.phone.trim()}%' OR ie.correo LIKE '%${this.userSearch.phone.trim()}%' OR ip.numero_telefonico LIKE '%${this.userSearch.phone.trim()}%' OR ip.correo LIKE '%${this.userSearch.phone.trim()}%')`
         );
       }
 
@@ -456,11 +476,12 @@ createApp({
             i.fecha_hora_interaccion,
             i.numero_documento,
             i.razon_social,
-            COALESCE(il.numero_telefonico, iw.numero_celular, ie.correo) as contacto
+            COALESCE(il.numero_telefonico, iw.numero_celular, ie.correo, ip.numero_telefonico, ip.correo) as contacto
           FROM ccrepo.PERUCOMPRAS_interactions i
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_llamada il ON i.guid = il.guid
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_whatsapp iw ON i.guid = iw.guid
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_email ie ON i.guid = ie.guid
+          LEFT JOIN ccrepo.PERUCOMPRAS_interaction_presencial ip ON i.guid = ip.guid
           WHERE ${whereClause}
           ORDER BY i.fecha_hora_interaccion DESC
           LIMIT 100
@@ -503,11 +524,14 @@ createApp({
             iw.numero_celular, iw.consulta, iw.respuesta, iw.valoracion_atencion_id,
             ie.correo, ie.asunto, ie.fecha_atencion, ie.estado_atencion_id,
             ie.estado_atencion_encauzado, ie.fecha_derivacion, ie.dias_atencion_organo,
-            ie.estado_atencion_organo_id, ie.agente_atendio_id
+            ie.estado_atencion_organo_id, ie.agente_atendio_id,
+            ip.hora_ingreso, ip.hora_salida, ip.numero_telefonico as ip_numero_telefonico,
+            ip.correo as ip_correo, ip.detalle_consulta as ip_detalle_consulta
           FROM ccrepo.PERUCOMPRAS_interactions i
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_llamada il ON i.guid = il.guid
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_whatsapp iw ON i.guid = iw.guid
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_email ie ON i.guid = ie.guid
+          LEFT JOIN ccrepo.PERUCOMPRAS_interaction_presencial ip ON i.guid = ip.guid
           WHERE i.guid = '${user.guid}'
         `;
 
@@ -555,13 +579,20 @@ createApp({
               correo: fullData.correo || "",
               asunto: fullData.asunto || "",
               fecha_atencion: fullData.fecha_atencion,
-              estado_atencion_id: fullData.estado_atencion_id,
               estado_atencion_encauzado:
                 fullData.estado_atencion_encauzado || false,
               fecha_derivacion: fullData.fecha_derivacion,
               dias_atencion_organo: fullData.dias_atencion_organo,
               estado_atencion_organo_id: fullData.estado_atencion_organo_id,
               agente_atendio_id: fullData.agente_atendio_id,
+            };
+          } else if (fullData.channel === "PRESENCIAL") {
+            this.presencialData = {
+              hora_ingreso: fullData.hora_ingreso || "",
+              hora_salida: fullData.hora_salida || "",
+              numero_telefonico: fullData.ip_numero_telefonico || "",
+              correo: fullData.ip_correo || "",
+              detalle_consulta: fullData.ip_detalle_consulta || "",
             };
           }
 
@@ -661,6 +692,19 @@ createApp({
         notification(
           "Advertencia",
           "El correo electrónico es requerido",
+          "fa fa-warning",
+          "warning"
+        );
+        return;
+      }
+
+      if (
+        this.interaction.channel === "PRESENCIAL" &&
+        !this.presencialData.hora_ingreso
+      ) {
+        notification(
+          "Advertencia",
+          "La hora de ingreso es requerida para atención presencial",
           "fa fa-warning",
           "warning"
         );
@@ -871,7 +915,7 @@ createApp({
           this.emailData.fecha_atencion
             ? `'${this.emailData.fecha_atencion}'`
             : "NULL",
-          this.emailData.estado_atencion_id || "NULL",
+          this.interaction.estado_consulta_id || "NULL",
           this.emailData.estado_atencion_encauzado ? 1 : 0,
           this.emailData.fecha_derivacion
             ? `'${this.emailData.fecha_derivacion}'`
@@ -896,7 +940,7 @@ createApp({
                   : "NULL"
               },
               estado_atencion_id = ${
-                this.emailData.estado_atencion_id || "NULL"
+                this.interaction.estado_consulta_id || "NULL"
               },
               estado_atencion_encauzado = ${
                 this.emailData.estado_atencion_encauzado ? 1 : 0
@@ -923,6 +967,66 @@ createApp({
           `;
 
         await UC_exec_async(query, "Repo");
+      } else if (this.interaction.channel === "PRESENCIAL") {
+        const values = [
+          `'${guid}'`,
+          this.presencialData.hora_ingreso
+            ? `'${this.presencialData.hora_ingreso}'`
+            : "NULL",
+          this.presencialData.hora_salida
+            ? `'${this.presencialData.hora_salida}'`
+            : "NULL",
+          this.presencialData.numero_telefonico
+            ? `'${this.presencialData.numero_telefonico}'`
+            : "NULL",
+          this.presencialData.correo
+            ? `'${this.presencialData.correo}'`
+            : "NULL",
+          this.presencialData.detalle_consulta
+            ? `'${this.presencialData.detalle_consulta.replace(/'/g, "''")}'`
+            : "NULL",
+        ];
+
+        const query = isUpdate
+          ? `
+            UPDATE ccrepo.PERUCOMPRAS_interaction_presencial SET
+              hora_ingreso = ${
+                this.presencialData.hora_ingreso
+                  ? `'${this.presencialData.hora_ingreso}'`
+                  : "NULL"
+              },
+              hora_salida = ${
+                this.presencialData.hora_salida
+                  ? `'${this.presencialData.hora_salida}'`
+                  : "NULL"
+              },
+              numero_telefonico = ${
+                this.presencialData.numero_telefonico
+                  ? `'${this.presencialData.numero_telefonico}'`
+                  : "NULL"
+              },
+              correo = ${
+                this.presencialData.correo
+                  ? `'${this.presencialData.correo}'`
+                  : "NULL"
+              },
+              detalle_consulta = ${
+                this.presencialData.detalle_consulta
+                  ? `'${this.presencialData.detalle_consulta.replace(
+                      /'/g,
+                      "''"
+                    )}'`
+                  : "NULL"
+              }
+            WHERE guid = '${guid}'
+          `
+          : `
+            INSERT INTO ccrepo.PERUCOMPRAS_interaction_presencial 
+            (guid, hora_ingreso, hora_salida, numero_telefonico, correo, detalle_consulta)
+            VALUES (${values.join(", ")})
+          `;
+
+        await UC_exec_async(query, "Repo");
       }
     },
 
@@ -941,16 +1045,8 @@ createApp({
 
       // Reset form
       this.resetForm();
-
       // Reset the flag
       this.isLoadedFromTable = false;
-
-      notification(
-        "Éxito",
-        "Datos guardados y cliente procesado exitosamente!",
-        "fa fa-check",
-        "success"
-      );
     },
   },
 })
