@@ -58,6 +58,7 @@
                     <!-- Common Fields -->
                     <v-text-field
                       v-model="interaction.numero_documento"
+                      :rules="[rules.document]"
                       placeholder="Número de documento"
                       label="Número de documento"
                       density="compact"
@@ -65,7 +66,7 @@
                       variant="solo"
                     ></v-text-field>
 
-                    <v-select
+                    <v-autocomplete
                       v-model="interaction.tipo_documento_id"
                       :items="catalogs.tipoDocumento"
                       item-value="id"
@@ -74,7 +75,8 @@
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
-                    ></v-select>
+                      clearable
+                    ></v-autocomplete>
 
                     <v-text-field
                       v-model="interaction.razon_social"
@@ -86,7 +88,7 @@
                       variant="solo"
                     ></v-text-field>
 
-                    <v-select
+                    <v-autocomplete
                       v-model="interaction.tipo_usuario_id"
                       :rules="[rules.required]"
                       :items="catalogs.tipoUsuario"
@@ -96,9 +98,10 @@
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
-                    ></v-select>
+                      clearable
+                    ></v-autocomplete>
 
-                    <v-select
+                    <v-autocomplete
                       v-model="interaction.region_id"
                       :items="catalogs.region"
                       item-value="id"
@@ -107,9 +110,10 @@
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
-                    ></v-select>
+                      clearable
+                    ></v-autocomplete>
 
-                    <v-select
+                    <v-autocomplete
                       v-model="interaction.tema_consulta_id"
                       :rules="[rules.required]"
                       :items="catalogs.temaConsulta"
@@ -119,9 +123,10 @@
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
-                    ></v-select>
+                      clearable
+                    ></v-autocomplete>
 
-                    <v-select
+                    <v-autocomplete
                       v-model="interaction.estado_consulta_id"
                       :rules="[rules.required]"
                       :items="catalogs.estadoConsulta"
@@ -131,9 +136,10 @@
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
-                    ></v-select>
+                      clearable
+                    ></v-autocomplete>
 
-                    <v-select
+                    <v-autocomplete
                       v-model="interaction.organo_atencion_id"
                       :items="catalogs.organoAtencion"
                       item-value="id"
@@ -142,9 +148,10 @@
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
-                    ></v-select>
+                      clearable
+                    ></v-autocomplete>
 
-                    <v-select
+                    <v-autocomplete
                       v-model="interaction.satisfaccion_servicio_id"
                       :items="catalogs.satisfaccionServicio"
                       item-value="id"
@@ -153,7 +160,8 @@
                       density="compact"
                       bg-color="light-blue-darken-4"
                       variant="solo"
-                    ></v-select>
+                      clearable
+                    ></v-autocomplete>
                   </v-card>
                 </v-col>
                 <!-- Lado central -->
@@ -165,7 +173,7 @@
 
                       <v-text-field
                         v-model="llamadaData.numero_telefonico"
-                        :rules="[rules.required]"
+                        :rules="[rules.required, rules.phoneRequired]"
                         placeholder="Número telefónico"
                         label="Número telefónico"
                         density="compact"
@@ -183,7 +191,7 @@
                         variant="solo"
                       ></v-text-field>
 
-                      <v-select
+                      <v-autocomplete
                         v-model="llamadaData.acuerdo_marco_id"
                         :items="catalogs.acuerdoMarco"
                         item-value="id"
@@ -193,7 +201,7 @@
                         bg-color="light-blue-darken-4"
                         variant="solo"
                         clearable
-                      ></v-select>
+                      ></v-autocomplete>
 
                       <v-textarea
                         v-model="llamadaData.detalle_acuerdo_marco"
@@ -220,7 +228,7 @@
 
                       <v-text-field
                         v-model="whatsappData.numero_celular"
-                        :rules="[rules.required]"
+                        :rules="[rules.required, rules.phoneRequired]"
                         placeholder="Número de celular"
                         label="Número de celular"
                         density="compact"
@@ -246,7 +254,7 @@
                         variant="solo"
                       ></v-textarea>
 
-                      <v-select
+                      <v-autocomplete
                         v-model="whatsappData.valoracion_atencion_id"
                         :items="catalogs.valoracionAtencion"
                         item-value="id"
@@ -256,7 +264,7 @@
                         bg-color="light-blue-darken-4"
                         variant="solo"
                         clearable
-                      ></v-select>
+                      ></v-autocomplete>
                     </div>
 
                     <!-- Channel-Specific Fields: EMAIL -->
@@ -291,7 +299,7 @@
                         variant="solo"
                       ></v-text-field>
 
-                      <v-select
+                      <v-autocomplete
                         v-model="interaction.estado_consulta_id"
                         :items="catalogs.estadoConsulta"
                         item-value="id"
@@ -300,7 +308,8 @@
                         density="compact"
                         bg-color="light-blue-darken-4"
                         variant="solo"
-                      ></v-select>
+                        clearable
+                      ></v-autocomplete>
 
                       <v-checkbox
                         v-model="emailData.estado_atencion_encauzado"
@@ -326,7 +335,7 @@
                           variant="solo"
                         ></v-text-field>
 
-                        <v-select
+                        <v-autocomplete
                           v-model="emailData.estado_atencion_organo_id"
                           :items="catalogs.estadoConsulta"
                           item-value="id"
@@ -335,7 +344,8 @@
                           density="compact"
                           bg-color="light-blue-darken-4"
                           variant="solo"
-                        ></v-select>
+                          clearable
+                        ></v-autocomplete>
                       </div>
                     </div>
 
@@ -364,6 +374,7 @@
 
                       <v-text-field
                         v-model="presencialData.numero_telefonico"
+                        :rules="[rules.phone]"
                         placeholder="Número telefónico"
                         label="Número telefónico (opcional)"
                         density="compact"
@@ -484,6 +495,45 @@
                       variant="solo"
                       clearable
                     ></v-text-field>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-autocomplete
+                      v-model="userSearch.channels"
+                      :items="availableChannels"
+                      label="Canales"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      multiple
+                      chips
+                      clearable
+                    ></v-autocomplete>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-autocomplete
+                      v-model="userSearch.agentId"
+                      :items="agentList"
+                      item-value="id"
+                      item-title="accountcode"
+                      label="Agente"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      clearable
+                    ></v-autocomplete>
+                  </v-col>
+                  <v-col cols="12" md="4">
+                    <v-autocomplete
+                      v-model="userSearch.estadoConsultaId"
+                      :items="catalogs.estadoConsulta"
+                      item-value="id"
+                      item-title="nombre"
+                      label="Estado de Consulta"
+                      density="compact"
+                      bg-color="light-blue-darken-4"
+                      variant="solo"
+                      clearable
+                    ></v-autocomplete>
                   </v-col>
                 </v-row>
 

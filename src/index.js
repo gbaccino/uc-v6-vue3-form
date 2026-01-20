@@ -22,9 +22,26 @@ createApp({
           );
         },
         phone: (value) => {
-          const phoneRegex = /^\d{7,20}$/;
+          if (!value) return true; // Optional field
+          const phoneRegex = /^\d{11,20}$/;
           return (
-            phoneRegex.test(value) || "Debe ser un número de teléfono válido"
+            phoneRegex.test(value) ||
+            "Debe ser un número de teléfono válido (mínimo 11 dígitos)"
+          );
+        },
+        phoneRequired: (value) => {
+          const phoneRegex = /^\d{11,20}$/;
+          return (
+            phoneRegex.test(value) ||
+            "Debe ser un número de teléfono válido (mínimo 11 dígitos)"
+          );
+        },
+        document: (value) => {
+          if (!value) return true; // Optional field
+          const docRegex = /^\d{11,}$/;
+          return (
+            docRegex.test(value) ||
+            "Debe ser un número de documento válido (mínimo 11 dígitos)"
           );
         },
       },
@@ -111,20 +128,42 @@ createApp({
         phone: "",
         document: "",
         razonSocial: "",
+        channels: ["LLAMADA", "WHATSAPP", "EMAIL", "WEBCHAT", "PRESENCIAL"],
+        agentId: null,
+        estadoConsultaId: null,
       },
       userSearchResults: [],
       isSearching: false,
+      availableChannels: [
+        { value: "LLAMADA", title: "Llamada" },
+        { value: "WHATSAPP", title: "WhatsApp" },
+        { value: "EMAIL", title: "Email" },
+        { value: "WEBCHAT", title: "WebChat" },
+        { value: "PRESENCIAL", title: "Presencial" },
+      ],
+      agentList: [],
       userTableHeaders: [
         { title: "Canal", key: "channel", align: "start" },
         { title: "Razón Social", key: "razon_social", align: "start" },
         { title: "Documento", key: "numero_documento", align: "start" },
         { title: "Fecha", key: "fecha_hora_interaccion", align: "start" },
+        { title: "Agente", key: "agente_nombre", align: "start" },
+        { title: "Estado", key: "estado_consulta_nombre", align: "start" },
         { title: "Acciones", key: "actions", sortable: false, align: "center" },
       ],
+      hasLoadedInitialSearch: false,
     };
   },
   mounted() {
     this.initializeForm();
+  },
+  watch: {
+    activeTab(newTab) {
+      // When switching to the list tab, perform an initial search if not done yet
+      if (newTab === "list" && !this.hasLoadedInitialSearch) {
+        this.performInitialSearch();
+      }
+    },
   },
   computed: {
     // Helper to get catalog item name by ID
@@ -207,8 +246,22 @@ createApp({
           "Error",
           "Error al cargar los catálogos: " + error.message,
           "fa fa-times",
-          "danger"
+          "danger",
         );
+      }
+    },
+
+    async loadAgentList() {
+      try {
+        const query =
+          "SELECT id, accountcode, name FROM ccdata.sip ORDER BY accountcode";
+        const result = await UC_get_async(query, "Repo");
+        const data = JSON.parse(result);
+        this.agentList = data || [];
+        console.log("Agent list loaded successfully");
+      } catch (error) {
+        console.error("Error loading agent list:", error);
+        this.agentList = [];
       }
     },
 
@@ -236,7 +289,16 @@ createApp({
     async initializeForm() {
       this.setAgent();
       await this.loadCatalogs();
+      await this.loadAgentList();
       await this.getAgentId();
+
+      // Set default search filter for estado_consulta to "Pendiente"
+      const pendienteEstado = this.catalogs.estadoConsulta.find(
+        (estado) => estado.nombre.toLowerCase() === "pendiente",
+      );
+      if (pendienteEstado) {
+        this.userSearch.estadoConsultaId = pendienteEstado.id;
+      }
 
       if (await this.initializeCTI()) {
         this.hasCTI = true;
@@ -264,7 +326,7 @@ createApp({
           const r = (Math.random() * 16) | 0;
           const v = c === "x" ? r : (r & 0x3) | 0x8;
           return v.toString(16);
-        }
+        },
       );
     },
     setAgent() {
@@ -295,7 +357,7 @@ createApp({
           "Error",
           "Error parsing CTI data: " + error.message,
           "fa fa-times",
-          "danger"
+          "danger",
         );
         return false;
       }
@@ -369,10 +431,14 @@ createApp({
       }
     },
     resetForm() {
+      // Determine the channel for the new form
+      // If there's no CTI, default to PRESENCIAL
+      const newChannel = this.hasCTI ? this.interaction.channel : "PRESENCIAL";
+
       // Reset common interaction data
       this.interaction = {
         guid: this.generateGuid(),
-        channel: this.interaction.channel,
+        channel: newChannel,
         fecha_hora_interaccion: new Date()
           .toISOString()
           .slice(0, 19)
@@ -424,7 +490,19 @@ createApp({
         detalle_consulta: "",
       };
 
+      // Set hora_ingreso for PRESENCIAL channel
+      if (newChannel === "PRESENCIAL") {
+        const now = new Date();
+        this.presencialData.hora_ingreso = now.toTimeString().slice(0, 5);
+      }
+
       this.isLoadedFromTable = false;
+    },
+
+    async performInitialSearch() {
+      // Perform a search with just the default channels selected
+      this.hasLoadedInitialSearch = true;
+      await this.searchUsers();
     },
 
     async searchUsers() {
@@ -434,13 +512,13 @@ createApp({
       if (this.userSearch.phone && this.userSearch.phone.trim() !== "") {
         // Search in all channel-specific tables for phone/contact
         conditions.push(
-          `(il.numero_telefonico LIKE '%${this.userSearch.phone.trim()}%' OR iw.numero_celular LIKE '%${this.userSearch.phone.trim()}%' OR ie.correo LIKE '%${this.userSearch.phone.trim()}%' OR ip.numero_telefonico LIKE '%${this.userSearch.phone.trim()}%' OR ip.correo LIKE '%${this.userSearch.phone.trim()}%')`
+          `(il.numero_telefonico LIKE '%${this.userSearch.phone.trim()}%' OR iw.numero_celular LIKE '%${this.userSearch.phone.trim()}%' OR ie.correo LIKE '%${this.userSearch.phone.trim()}%' OR ip.numero_telefonico LIKE '%${this.userSearch.phone.trim()}%' OR ip.correo LIKE '%${this.userSearch.phone.trim()}%')`,
         );
       }
 
       if (this.userSearch.document && this.userSearch.document.trim() !== "") {
         conditions.push(
-          `i.numero_documento LIKE '%${this.userSearch.document.trim()}%'`
+          `i.numero_documento LIKE '%${this.userSearch.document.trim()}%'`,
         );
       }
 
@@ -449,7 +527,27 @@ createApp({
         this.userSearch.razonSocial.trim() !== ""
       ) {
         conditions.push(
-          `i.razon_social LIKE '%${this.userSearch.razonSocial.trim()}%'`
+          `i.razon_social LIKE '%${this.userSearch.razonSocial.trim()}%'`,
+        );
+      }
+
+      // Filter by channels
+      if (this.userSearch.channels && this.userSearch.channels.length > 0) {
+        const channelList = this.userSearch.channels
+          .map((ch) => `'${ch}'`)
+          .join(", ");
+        conditions.push(`i.channel IN (${channelList})`);
+      }
+
+      // Filter by agent
+      if (this.userSearch.agentId) {
+        conditions.push(`i.agente_id = ${this.userSearch.agentId}`);
+      }
+
+      // Filter by status
+      if (this.userSearch.estadoConsultaId) {
+        conditions.push(
+          `i.estado_consulta_id = ${this.userSearch.estadoConsultaId}`,
         );
       }
 
@@ -459,7 +557,7 @@ createApp({
           "Advertencia",
           "Por favor ingrese al menos un criterio de búsqueda",
           "fa fa-warning",
-          "warning"
+          "warning",
         );
         return;
       }
@@ -474,14 +572,18 @@ createApp({
             i.channel,
             i.numero_documento,
             i.razon_social,
-            i.fecha_hora_interaccion
+            i.fecha_hora_interaccion,
+            COALESCE(s.accountcode, 'N/A') as agente_nombre,
+            COALESCE(ec.nombre, 'N/A') as estado_consulta_nombre
           FROM ccrepo.PERUCOMPRAS_interactions i
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_llamada il ON i.guid = il.guid
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_whatsapp iw ON i.guid = iw.guid
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_email ie ON i.guid = ie.guid
           LEFT JOIN ccrepo.PERUCOMPRAS_interaction_presencial ip ON i.guid = ip.guid
+          LEFT JOIN ccdata.sip s ON i.agente_id = s.id
+          LEFT JOIN ccrepo.PERUCOMPRAS_estado_consulta ec ON i.estado_consulta_id = ec.id
           WHERE ${whereClause}
-          GROUP BY i.guid, i.channel, i.numero_documento, i.razon_social, i.fecha_hora_interaccion
+          GROUP BY i.guid, i.channel, i.numero_documento, i.razon_social, i.fecha_hora_interaccion, s.accountcode, ec.nombre
           ORDER BY i.fecha_hora_interaccion DESC
           LIMIT 100
         `;
@@ -496,7 +598,7 @@ createApp({
             "Info",
             "No se encontraron interacciones con los criterios especificados",
             "fa fa-info",
-            "info"
+            "info",
           );
         }
       } catch (error) {
@@ -505,7 +607,7 @@ createApp({
           "Error",
           "Error al buscar usuarios: " + error.message,
           "fa fa-times",
-          "danger"
+          "danger",
         );
         this.userSearchResults = [];
       } finally {
@@ -605,7 +707,7 @@ createApp({
             "Success",
             "Interacci\u00f3n cargada exitosamente",
             "fa fa-check",
-            "success"
+            "success",
           );
         }
       } catch (error) {
@@ -614,7 +716,7 @@ createApp({
           "Error",
           "Error al cargar la interacci\u00f3n: " + error.message,
           "fa fa-times",
-          "danger"
+          "danger",
         );
       }
     },
@@ -625,9 +727,9 @@ createApp({
           "Advertencia",
           "El campo Razón Social es requerido",
           "fa fa-warning",
-          "warning"
+          "warning",
         );
-        return;
+        return false;
       }
 
       if (!this.interaction.tipo_usuario_id) {
@@ -635,9 +737,9 @@ createApp({
           "Advertencia",
           "El campo Tipo de Usuario es requerido",
           "fa fa-warning",
-          "warning"
+          "warning",
         );
-        return;
+        return false;
       }
 
       if (!this.interaction.tema_consulta_id) {
@@ -645,9 +747,9 @@ createApp({
           "Advertencia",
           "El campo Tema de Consulta es requerido",
           "fa fa-warning",
-          "warning"
+          "warning",
         );
-        return;
+        return false;
       }
 
       if (!this.interaction.estado_consulta_id) {
@@ -655,9 +757,9 @@ createApp({
           "Advertencia",
           "El campo Estado de Consulta es requerido",
           "fa fa-warning",
-          "warning"
+          "warning",
         );
-        return;
+        return false;
       }
 
       // Validate channel-specific fields
@@ -669,9 +771,9 @@ createApp({
           "Advertencia",
           "El número telefónico es requerido para llamadas",
           "fa fa-warning",
-          "warning"
+          "warning",
         );
-        return;
+        return false;
       }
 
       if (
@@ -682,9 +784,9 @@ createApp({
           "Advertencia",
           "El número de WhatsApp es requerido",
           "fa fa-warning",
-          "warning"
+          "warning",
         );
-        return;
+        return false;
       }
 
       if (this.interaction.channel === "EMAIL" && !this.emailData.correo) {
@@ -692,9 +794,9 @@ createApp({
           "Advertencia",
           "El correo electrónico es requerido",
           "fa fa-warning",
-          "warning"
+          "warning",
         );
-        return;
+        return false;
       }
 
       if (
@@ -705,9 +807,9 @@ createApp({
           "Advertencia",
           "La hora de ingreso es requerida para atención presencial",
           "fa fa-warning",
-          "warning"
+          "warning",
         );
-        return;
+        return false;
       }
 
       // WEBCHAT has no additional required fields beyond common interaction data
@@ -800,16 +902,18 @@ createApp({
             ? "Datos actualizados correctamente"
             : "Datos guardados correctamente",
           "fa fa-check",
-          "success"
+          "success",
         );
+        return true;
       } catch (error) {
         console.error("Error saving form data:", error);
         notification(
           "Error",
           "Error al guardar los datos: " + error.message,
           "fa fa-times",
-          "danger"
+          "danger",
         );
+        return false;
       } finally {
         this.isSaving = false;
       }
@@ -847,7 +951,7 @@ createApp({
                 this.llamadaData.detalle_acuerdo_marco
                   ? `'${this.llamadaData.detalle_acuerdo_marco.replace(
                       /'/g,
-                      "''"
+                      "''",
                     )}'`
                   : "NULL"
               },
@@ -1013,7 +1117,7 @@ createApp({
                 this.presencialData.detalle_consulta
                   ? `'${this.presencialData.detalle_consulta.replace(
                       /'/g,
-                      "''"
+                      "''",
                     )}'`
                   : "NULL"
               }
@@ -1031,7 +1135,12 @@ createApp({
 
     async saveAndFinish() {
       // First, save the form data
-      await this.saveFormData();
+      const saveSuccess = await this.saveFormData();
+
+      // Only proceed if save was successful
+      if (!saveSuccess) {
+        return;
+      }
 
       // Then close form if CTI (skip if loaded from table)
       if (!this.isLoadedFromTable && this.hasCTI) {
@@ -1042,7 +1151,7 @@ createApp({
         }
       }
 
-      // Reset form
+      // Reset form only after successful save
       this.resetForm();
       // Reset the flag
       this.isLoadedFromTable = false;
