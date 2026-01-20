@@ -891,10 +891,25 @@ createApp({
           `;
         }
 
-        await UC_exec_async(query, "Repo");
+        const result = await UC_exec_async(query, "Repo");
+        
+        // Check if the query execution was successful
+        if (result === "ERROR") {
+          notification(
+            "Error",
+            "Error al guardar la interacción. Verifique que los datos no excedan los límites permitidos.",
+            "fa fa-times",
+            "danger",
+          );
+          return false;
+        }
 
         // Save channel-specific data
-        await this.saveChannelSpecificData(recordExists);
+        const channelResult = await this.saveChannelSpecificData(recordExists);
+        
+        if (!channelResult) {
+          return false;
+        }
 
         notification(
           "Éxito",
@@ -924,7 +939,7 @@ createApp({
 
       // WEBCHAT has no channel-specific table, only uses common interaction fields
       if (this.interaction.channel === "WEBCHAT") {
-        return; // No additional data to save
+        return true; // No additional data to save
       }
 
       if (this.interaction.channel === "LLAMADA") {
@@ -968,7 +983,17 @@ createApp({
             VALUES (${values.join(", ")})
           `;
 
-        await UC_exec_async(query, "Repo");
+        const result = await UC_exec_async(query, "Repo");
+        
+        if (result === "ERROR") {
+          notification(
+            "Error",
+            "Error al guardar los datos de llamada. Verifique que los datos no excedan los límites permitidos.",
+            "fa fa-times",
+            "danger",
+          );
+          return false;
+        }
       } else if (this.interaction.channel === "WHATSAPP") {
         const values = [
           `'${guid}'`,
@@ -1007,7 +1032,17 @@ createApp({
             VALUES (${values.join(", ")})
           `;
 
-        await UC_exec_async(query, "Repo");
+        const result = await UC_exec_async(query, "Repo");
+        
+        if (result === "ERROR") {
+          notification(
+            "Error",
+            "Error al guardar los datos de WhatsApp. Verifique que los datos no excedan los límites permitidos.",
+            "fa fa-times",
+            "danger",
+          );
+          return false;
+        }
       } else if (this.interaction.channel === "EMAIL") {
         const values = [
           `'${guid}'`,
@@ -1069,7 +1104,17 @@ createApp({
             VALUES (${values.join(", ")})
           `;
 
-        await UC_exec_async(query, "Repo");
+        const result = await UC_exec_async(query, "Repo");
+        
+        if (result === "ERROR") {
+          notification(
+            "Error",
+            "Error al guardar los datos de email. Verifique que los datos no excedan los límites permitidos.",
+            "fa fa-times",
+            "danger",
+          );
+          return false;
+        }
       } else if (this.interaction.channel === "PRESENCIAL") {
         const values = [
           `'${guid}'`,
@@ -1129,8 +1174,20 @@ createApp({
             VALUES (${values.join(", ")})
           `;
 
-        await UC_exec_async(query, "Repo");
+        const result = await UC_exec_async(query, "Repo");
+        
+        if (result === "ERROR") {
+          notification(
+            "Error",
+            "Error al guardar los datos presenciales. Verifique que los datos no excedan los límites permitidos.",
+            "fa fa-times",
+            "danger",
+          );
+          return false;
+        }
       }
+
+      return true;
     },
 
     async saveAndFinish() {
