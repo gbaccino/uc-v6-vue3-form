@@ -10,37 +10,47 @@ createApp({
   data() {
     return {
       rules: {
-        required: (value) => !!value || "Campo requerido",
+        required: (value) =>
+          !!(value && String(value).trim()) || "Campo requerido",
         number: (value) => {
+          if (!value) return true;
+          const trimmed = String(value).trim();
           const numberRegex = /^\d+$/;
-          return numberRegex.test(value) || "Debe ser un número válido";
+          return numberRegex.test(trimmed) || "Debe ser un número válido";
         },
         email: (value) => {
+          if (!value) return true;
+          const trimmed = String(value).trim();
           const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
           return (
-            emailRegex.test(value) || "Debe ser un correo electrónico válido"
+            emailRegex.test(trimmed) || "Debe ser un correo electrónico válido"
           );
         },
         phone: (value) => {
           if (!value) return true; // Optional field
-          const phoneRegex = /^\d{11,20}$/;
+          const trimmed = String(value).trim();
+          const phoneRegex = /^\d{0,11}$/;
           return (
-            phoneRegex.test(value) ||
-            "Debe ser un número de teléfono válido (mínimo 11 dígitos)"
+            phoneRegex.test(trimmed) ||
+            "Debe ser un número de teléfono válido (máximo 11 dígitos)"
           );
         },
         phoneRequired: (value) => {
-          const phoneRegex = /^\d{11,20}$/;
+          if (!value)
+            return "Debe ser un número de teléfono válido (máximo 11 dígitos)";
+          const trimmed = String(value).trim();
+          const phoneRegex = /^\d{0,11}$/;
           return (
-            phoneRegex.test(value) ||
-            "Debe ser un número de teléfono válido (mínimo 11 dígitos)"
+            phoneRegex.test(trimmed) ||
+            "Debe ser un número de teléfono válido (máximo 11 dígitos)"
           );
         },
         document: (value) => {
           if (!value) return true; // Optional field
+          const trimmed = String(value).trim();
           const docRegex = /^\d{11,}$/;
           return (
-            docRegex.test(value) ||
+            docRegex.test(trimmed) ||
             "Debe ser un número de documento válido (mínimo 11 dígitos)"
           );
         },
@@ -721,6 +731,15 @@ createApp({
       }
     },
     async saveFormData() {
+      // Trim all string fields before validation
+      if (this.interaction.razon_social) {
+        this.interaction.razon_social = this.interaction.razon_social.trim();
+      }
+      if (this.interaction.numero_documento) {
+        this.interaction.numero_documento =
+          this.interaction.numero_documento.trim();
+      }
+
       // Validate required common fields
       if (!this.interaction.razon_social) {
         notification(
@@ -760,6 +779,52 @@ createApp({
           "warning",
         );
         return false;
+      }
+
+      // Trim channel-specific fields
+      if (this.interaction.channel === "LLAMADA") {
+        if (this.llamadaData.numero_telefonico) {
+          this.llamadaData.numero_telefonico =
+            this.llamadaData.numero_telefonico.trim();
+        }
+        if (this.llamadaData.detalle_acuerdo_marco) {
+          this.llamadaData.detalle_acuerdo_marco =
+            this.llamadaData.detalle_acuerdo_marco.trim();
+        }
+        if (this.llamadaData.detalle_consulta) {
+          this.llamadaData.detalle_consulta =
+            this.llamadaData.detalle_consulta.trim();
+        }
+      } else if (this.interaction.channel === "WHATSAPP") {
+        if (this.whatsappData.numero_celular) {
+          this.whatsappData.numero_celular =
+            this.whatsappData.numero_celular.trim();
+        }
+        if (this.whatsappData.consulta) {
+          this.whatsappData.consulta = this.whatsappData.consulta.trim();
+        }
+        if (this.whatsappData.respuesta) {
+          this.whatsappData.respuesta = this.whatsappData.respuesta.trim();
+        }
+      } else if (this.interaction.channel === "EMAIL") {
+        if (this.emailData.correo) {
+          this.emailData.correo = this.emailData.correo.trim();
+        }
+        if (this.emailData.asunto) {
+          this.emailData.asunto = this.emailData.asunto.trim();
+        }
+      } else if (this.interaction.channel === "PRESENCIAL") {
+        if (this.presencialData.numero_telefonico) {
+          this.presencialData.numero_telefonico =
+            this.presencialData.numero_telefonico.trim();
+        }
+        if (this.presencialData.correo) {
+          this.presencialData.correo = this.presencialData.correo.trim();
+        }
+        if (this.presencialData.detalle_consulta) {
+          this.presencialData.detalle_consulta =
+            this.presencialData.detalle_consulta.trim();
+        }
       }
 
       // Validate channel-specific fields
@@ -820,7 +885,8 @@ createApp({
         // Check if interaction exists
         const checkQuery = `SELECT COUNT(*) as count FROM ccrepo.PERUCOMPRAS_interactions WHERE guid = '${this.interaction.guid}'`;
         const checkResult = await UC_get_async(checkQuery, "Repo");
-        const recordExists = checkResult > 0;
+        const recordCount = JSON.parse(checkResult)[0].count;
+        const recordExists = recordCount > 0;
 
         // Prepare interaction data
         const interactionValues = [
@@ -892,7 +958,7 @@ createApp({
         }
 
         const result = await UC_exec_async(query, "Repo");
-        
+
         // Check if the query execution was successful
         if (result === "ERROR") {
           notification(
@@ -906,7 +972,7 @@ createApp({
 
         // Save channel-specific data
         const channelResult = await this.saveChannelSpecificData(recordExists);
-        
+
         if (!channelResult) {
           return false;
         }
@@ -984,7 +1050,7 @@ createApp({
           `;
 
         const result = await UC_exec_async(query, "Repo");
-        
+
         if (result === "ERROR") {
           notification(
             "Error",
@@ -1033,7 +1099,7 @@ createApp({
           `;
 
         const result = await UC_exec_async(query, "Repo");
-        
+
         if (result === "ERROR") {
           notification(
             "Error",
@@ -1105,7 +1171,7 @@ createApp({
           `;
 
         const result = await UC_exec_async(query, "Repo");
-        
+
         if (result === "ERROR") {
           notification(
             "Error",
@@ -1175,7 +1241,7 @@ createApp({
           `;
 
         const result = await UC_exec_async(query, "Repo");
-        
+
         if (result === "ERROR") {
           notification(
             "Error",
